@@ -18,17 +18,33 @@ background, and a local dashboard shows you what changed.
 macOS + [Claude Code](https://claude.com/claude-code) + [uv](https://docs.astral.sh/uv/) required.
 
 ```bash
-git clone https://github.com/rotsen18/claude-grammar.git
-cd claude-grammar
-bash install.sh
+curl -fsSL https://raw.githubusercontent.com/rotsen18/claude-grammar/main/get.sh -o get.sh && bash get.sh
 ```
 
-The installer copies the hook into `~/.claude/hooks/grammar/`, installs
-Python deps, and registers the `UserPromptSubmit` + `SessionStart` hooks in
-`~/.claude/settings.json` (backs up your existing file once).
+That's it. The bootstrapper downloads the latest release, runs the
+installer, and you're done. The installer copies the hook into
+`~/.claude/hooks/grammar/`, installs Python deps via uv, and registers the
+`UserPromptSubmit` + `SessionStart` hooks in `~/.claude/settings.json`
+(backs up your existing file once).
 
-Restart Claude Code. The dashboard opens in a small Chrome window. That's
-the whole setup.
+Restart Claude Code. The dashboard opens in a small Chrome window. Updates
+after that are one-click from the dashboard itself — no need to re-run any
+install command.
+
+<details>
+<summary>Want to read the script before running it?</summary>
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rotsen18/claude-grammar/main/get.sh -o get.sh
+less get.sh     # inspect
+bash get.sh
+```
+
+Or pin to a specific version:
+```bash
+CLAUDE_GRAMMAR_TAG=v0.3.0 bash get.sh
+```
+</details>
 
 ## Daily use
 
