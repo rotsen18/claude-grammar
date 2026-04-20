@@ -9,6 +9,8 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+## [0.3.4] — 2026-04-20
+
 ### Changed
 - Internal: releases now cut via a `workflow_dispatch` GitHub Actions job
   (Actions → Release → pick patch/minor/major). The workflow bumps
