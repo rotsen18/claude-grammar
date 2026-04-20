@@ -1,26 +1,23 @@
-"""Update checker.
+"""Update checker backed by GitHub Releases.
 
-Fetches a small `manifest.json` from a user-configured URL and compares the
-advertised version with the installed one. Results are cached in a local file
-so repeated checks within `check_interval_hours` don't hit the network.
+Calls `GET /repos/{owner}/{repo}/releases/latest` and compares the
+`tag_name` (leading `v` stripped) with the installed version. Results are
+cached for `update.check_interval_hours` to avoid hammering the API.
 
-Manifest schema (all fields optional except `version`):
-    {
-      "version":     "0.3.0",
-      "download_url": "https://…/grammar-hook-0.3.0.zip",
-      "changelog_url": "https://…/CHANGELOG.md",
-      "release_notes": "- Added translation …",
-      "minimum_python": "3.11",
-      "sha256":        "<hex digest of the zip>",
-      "released_at":   "2026-04-22"
-    }
+Config keys under `update` in settings:
+    github_repo           — "owner/repo" to check. Empty disables checks.
+    check_interval_hours  — cache TTL, default 24.
 
-The config knob `update.manifest_url` is empty by default; nothing is fetched
-unless the user opts in.
+The apply flow in `dashboard/app.py` consumes:
+    .latest        — tag minus leading "v"
+    .download_url  — archive URL for the tag (source zip)
+    .release_notes — markdown body of the release
+    .release_url   — human-readable release page
 """
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -34,6 +31,7 @@ log = get_logger()
 
 _CACHE_FILE = DATA_DIR / "update_check.json"
 _FETCH_TIMEOUT_SECONDS = 8
+_GITHUB_API = "https://api.github.com"
 
 
 @dataclass
@@ -42,8 +40,12 @@ class UpdateStatus:
     latest: str = ""
     update_available: bool = False
     checked_at: str = ""
-    manifest: dict = field(default_factory=dict)
+    download_url: str = ""
+    release_notes: str = ""
+    release_url: str = ""
+    published_at: str = ""
     error: str = ""
+    raw: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -51,9 +53,16 @@ class UpdateStatus:
             "latest": self.latest,
             "update_available": self.update_available,
             "checked_at": self.checked_at,
-            "manifest": self.manifest,
+            "download_url": self.download_url,
+            "release_notes": self.release_notes,
+            "release_url": self.release_url,
+            "published_at": self.published_at,
             "error": self.error,
         }
+
+
+def _strip_v(tag: str) -> str:
+    return tag.lstrip("vV").strip()
 
 
 def _load_cache() -> dict:
@@ -75,7 +84,7 @@ def _save_cache(data: dict) -> None:
         log.debug("updater cache write failed: %s", exc)
 
 
-def _is_cache_fresh(cache: dict, interval_hours: int) -> bool:
+def _is_cache_fresh(cache: dict, interval_hours: float) -> bool:
     timestamp = cache.get("checked_at")
     if not timestamp:
         return False
@@ -87,28 +96,50 @@ def _is_cache_fresh(cache: dict, interval_hours: int) -> bool:
     return age_hours < max(0.01, interval_hours)
 
 
-def check_for_update(manifest_url: str, interval_hours: int = 24, force: bool = False) -> UpdateStatus:
+def _status_from_cache(cache: dict, current: str) -> UpdateStatus:
+    latest = cache.get("latest", "")
+    return UpdateStatus(
+        current=current,
+        latest=latest,
+        # Re-evaluate on every read so a version bump locally (e.g. just-
+        # installed a newer release) correctly clears update_available
+        # without waiting for the cache to expire.
+        update_available=bool(latest) and is_newer(latest, current),
+        checked_at=cache.get("checked_at", ""),
+        download_url=cache.get("download_url", ""),
+        release_notes=cache.get("release_notes", ""),
+        release_url=cache.get("release_url", ""),
+        published_at=cache.get("published_at", ""),
+    )
+
+
+def check_for_update(github_repo: str, interval_hours: float = 24, force: bool = False) -> UpdateStatus:
     current = get_version()
     cache = _load_cache()
 
-    if not manifest_url:
-        return UpdateStatus(current=current, error="manifest_url is empty")
+    if not github_repo:
+        return UpdateStatus(current=current, error="github_repo is empty")
 
-    if not force and _is_cache_fresh(cache, interval_hours):
-        cached_status = UpdateStatus(
-            current=current,
-            latest=cache.get("latest", ""),
-            update_available=bool(cache.get("update_available")),
-            checked_at=cache.get("checked_at", ""),
-            manifest=cache.get("manifest") or {},
-        )
-        return cached_status
+    if "/" not in github_repo:
+        return UpdateStatus(current=current, error="github_repo must be 'owner/repo'")
+
+    if not force and _is_cache_fresh(cache, interval_hours) and cache.get("repo") == github_repo:
+        return _status_from_cache(cache, current)
+
+    url = f"{_GITHUB_API}/repos/{github_repo}/releases/latest"
+    headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
+    token = os.environ.get("GITHUB_TOKEN", "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
 
     try:
-        response = requests.get(manifest_url, timeout=_FETCH_TIMEOUT_SECONDS)
+        response = requests.get(url, headers=headers, timeout=_FETCH_TIMEOUT_SECONDS)
     except Exception as exc:
         log.warning("Update check failed: %s", exc)
         return UpdateStatus(current=current, error=f"request failed: {exc}")
+
+    if response.status_code == 404:
+        return UpdateStatus(current=current, error="no releases published yet")
 
     if response.status_code != 200:
         message = f"HTTP {response.status_code}"
@@ -116,28 +147,38 @@ def check_for_update(manifest_url: str, interval_hours: int = 24, force: bool = 
         return UpdateStatus(current=current, error=message)
 
     try:
-        manifest = response.json() or {}
+        release = response.json() or {}
     except ValueError as exc:
-        log.warning("Update manifest parse failed: %s", exc)
-        return UpdateStatus(current=current, error="invalid manifest JSON")
+        return UpdateStatus(current=current, error=f"invalid JSON: {exc}")
 
-    latest = (manifest.get("version") or "").strip()
+    tag_name = (release.get("tag_name") or "").strip()
+    latest = _strip_v(tag_name)
     if not latest:
-        return UpdateStatus(current=current, error="manifest missing `version`")
+        return UpdateStatus(current=current, error="release missing tag_name")
+
+    # Tag archive URL — stable, public, auth-free for public repos.
+    download_url = f"https://github.com/{github_repo}/archive/refs/tags/{tag_name}.zip"
 
     status = UpdateStatus(
         current=current,
         latest=latest,
         update_available=is_newer(latest, current),
         checked_at=datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
-        manifest=manifest,
+        download_url=download_url,
+        release_notes=(release.get("body") or "").strip(),
+        release_url=release.get("html_url", ""),
+        published_at=release.get("published_at", ""),
     )
 
     _save_cache({
+        "repo": github_repo,
         "latest": status.latest,
         "update_available": status.update_available,
         "checked_at": status.checked_at,
-        "manifest": status.manifest,
+        "download_url": status.download_url,
+        "release_notes": status.release_notes,
+        "release_url": status.release_url,
+        "published_at": status.published_at,
     })
 
     return status

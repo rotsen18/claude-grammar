@@ -12,6 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import requests
 from flask import Flask, Response, jsonify, render_template, request
 
 import reports as reports_module
@@ -19,9 +20,11 @@ import storage
 import translator
 import updater
 from config import DATA_DIR, ENV_FILE
-from hook_log import LOG_FILE, tail_log
+from hook_log import LOG_FILE, get_logger, tail_log
 from settings import DASHBOARD_HOST, DASHBOARD_PORT, GROQ_FALLBACK_MODELS, GROQ_MODEL
 from version import get_version
+
+log = get_logger()
 
 LOG_CURSOR_FILE = DATA_DIR / "logs_last_seen_offset"
 GROQ_QUOTA_FILE = DATA_DIR / "groq_quota.json"
@@ -76,6 +79,151 @@ def _broadcast_pending(payload: dict) -> None:
             sub.put_nowait(payload)
         except Exception:
             pass
+
+
+# ── Update worker state ─────────────────────────────────────────────
+# A single in-flight update at a time. `events` is a replay log so a late
+# SSE subscriber still gets the earlier phases. `subscribers` are live
+# queues that receive new events as they happen.
+_update_state: dict = {
+    "lock": threading.Lock(),
+    "active": False,
+    "task_id": None,
+    "events": [],
+    "subscribers": [],
+    "terminal": False,
+}
+
+
+def _emit_update_event(phase: str, **extra) -> None:
+    event = {"phase": phase, "ts": time.time(), **extra}
+    with _update_state["lock"]:
+        _update_state["events"].append(event)
+        subs = list(_update_state["subscribers"])
+        if phase in ("done", "error"):
+            _update_state["terminal"] = True
+    for sub in subs:
+        try:
+            sub.put_nowait(event)
+        except Exception:
+            pass
+
+
+def _run_update(task_id: str) -> None:
+    """Background worker. Never raises — always emits a terminal event."""
+    try:
+        settings = _load_effective_settings()
+        update_cfg = settings.get("update") or {}
+        github_repo = (update_cfg.get("github_repo") or "").strip()
+        status = updater.check_for_update(
+            github_repo,
+            interval_hours=int(update_cfg.get("check_interval_hours") or 24),
+            force=True,
+        )
+        if status.error:
+            _emit_update_event("error", message=status.error)
+            return
+        if not status.update_available:
+            _emit_update_event("done", already_latest=True, version=status.current)
+            return
+
+        _emit_update_event("downloading", version=status.latest, url=status.download_url)
+        zip_path = _download_release_zip(status.download_url)
+
+        _emit_update_event("extracting")
+        install_root = _extract_zip(zip_path)
+
+        _emit_update_event("installing", install_root=str(install_root))
+        _run_installer(install_root)
+
+        _emit_update_event("restarting")
+        # Last event before we orchestrate our own suicide. Give the SSE
+        # stream a brief head start so clients receive "restarting" before
+        # the socket drops.
+        _spawn_server_check(startup_delay_seconds=2.0)
+        threading.Timer(0.5, lambda: _emit_update_event("done", version=status.latest)).start()
+        _schedule_exit(delay=1.5)
+    except _UpdateError as exc:
+        _emit_update_event("error", message=str(exc))
+    except Exception as exc:  # noqa: BLE001 — top-level worker must not propagate
+        log.exception("Update worker crashed")
+        _emit_update_event("error", message=f"{type(exc).__name__}: {exc}")
+    finally:
+        with _update_state["lock"]:
+            _update_state["active"] = False
+
+
+class _UpdateError(Exception):
+    """Raised inside the update worker to surface a clean message to the UI."""
+
+
+def _download_release_zip(url: str) -> Path:
+    tmp = tempfile.NamedTemporaryFile(prefix="claude-grammar-", suffix=".zip", delete=False)
+    path = Path(tmp.name)
+    tmp.close()
+    try:
+        with requests.get(url, stream=True, timeout=60, allow_redirects=True) as response:
+            response.raise_for_status()
+            total = int(response.headers.get("content-length") or 0)
+            downloaded = 0
+            last_emit = 0.0
+            with path.open("wb") as handle:
+                for chunk in response.iter_content(chunk_size=65536):
+                    if not chunk:
+                        continue
+                    handle.write(chunk)
+                    downloaded += len(chunk)
+                    now = time.time()
+                    # Throttle progress emissions to ~4 per second.
+                    if now - last_emit > 0.25:
+                        _emit_update_event(
+                            "downloading",
+                            bytes_downloaded=downloaded,
+                            bytes_total=total,
+                            fraction=(downloaded / total) if total else None,
+                        )
+                        last_emit = now
+    except requests.HTTPError as exc:
+        raise _UpdateError(f"download failed: HTTP {exc.response.status_code}") from exc
+    except requests.RequestException as exc:
+        raise _UpdateError(f"download failed: {exc}") from exc
+    return path
+
+
+def _extract_zip(zip_path: Path) -> Path:
+    import zipfile
+
+    dest = Path(tempfile.mkdtemp(prefix="claude-grammar-unpack-"))
+    try:
+        with zipfile.ZipFile(zip_path) as archive:
+            archive.extractall(dest)
+    except zipfile.BadZipFile as exc:
+        raise _UpdateError(f"downloaded file is not a valid zip: {exc}") from exc
+
+    # GitHub zipballs contain exactly one top-level directory.
+    entries = [p for p in dest.iterdir() if p.is_dir()]
+    if len(entries) != 1:
+        raise _UpdateError(f"expected 1 top-level dir in zip, got {len(entries)}")
+    return entries[0]
+
+
+def _run_installer(install_root: Path) -> None:
+    script = install_root / "install.sh"
+    if not script.exists():
+        raise _UpdateError("install.sh missing from downloaded release")
+    try:
+        result = subprocess.run(
+            ["bash", str(script)],
+            cwd=str(install_root),
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        raise _UpdateError("installer timed out after 5 minutes") from None
+    if result.returncode != 0:
+        tail = (result.stderr or result.stdout or "").strip()[-400:]
+        raise _UpdateError(f"installer exited {result.returncode}: {tail}")
 
 
 CORRECTOR_OPTIONS = ["groq", "claude_cli", "languagetool"]
@@ -398,11 +546,76 @@ def api_version() -> Response:
 def api_update_check() -> Response:
     settings = _load_effective_settings()
     update_cfg = settings.get("update") or {}
-    manifest_url = (update_cfg.get("manifest_url") or "").strip()
+    github_repo = (update_cfg.get("github_repo") or "").strip()
     interval_hours = int(update_cfg.get("check_interval_hours") or 24)
     force = request.args.get("force", "").lower() in {"1", "true", "yes"} or request.method == "POST"
-    status = updater.check_for_update(manifest_url, interval_hours=interval_hours, force=force)
+    status = updater.check_for_update(github_repo, interval_hours=interval_hours, force=force)
     return jsonify(status.to_dict())
+
+
+@app.route("/api/update/apply", methods=["POST"])
+def api_update_apply() -> Response:
+    """Kick off a background update run. Returns a task_id; the caller
+    subscribes to /api/update/progress/<id> for live phase events.
+
+    Only one update at a time. 409 if one is already in-flight.
+    """
+    with _update_state["lock"]:
+        if _update_state["active"]:
+            return jsonify({"ok": False, "error": "update already in progress"}), 409
+
+        task_id = f"u{int(time.time())}"
+        _update_state["active"] = True
+        _update_state["task_id"] = task_id
+        _update_state["events"] = []
+        _update_state["subscribers"] = []
+        _update_state["terminal"] = False
+
+    thread = threading.Thread(target=_run_update, args=(task_id,), daemon=True)
+    thread.start()
+    return jsonify({"ok": True, "task_id": task_id}), 202
+
+
+@app.route("/api/update/progress/<task_id>")
+def api_update_progress(task_id: str) -> Response:
+    """SSE stream: replays past events for this task, then streams new
+    ones until the task reaches a terminal phase (done|error).
+    """
+    if _update_state["task_id"] != task_id:
+        return Response("unknown task_id\n", status=404)
+
+    def generate():
+        sub: "_queue.Queue[dict]" = _queue.Queue()
+        with _update_state["lock"]:
+            past = list(_update_state["events"])
+            terminal_already = _update_state["terminal"]
+            if not terminal_already:
+                _update_state["subscribers"].append(sub)
+
+        for event in past:
+            yield f"data: {json.dumps(event)}\n\n"
+
+        if terminal_already:
+            return
+
+        try:
+            while True:
+                try:
+                    event = sub.get(timeout=15)
+                except _queue.Empty:
+                    yield ": heartbeat\n\n"
+                    continue
+                yield f"data: {json.dumps(event)}\n\n"
+                if event.get("phase") in ("done", "error"):
+                    break
+        finally:
+            with _update_state["lock"]:
+                try:
+                    _update_state["subscribers"].remove(sub)
+                except ValueError:
+                    pass
+
+    return Response(generate(), mimetype="text/event-stream")
 
 
 @app.route("/api/translate", methods=["POST"])

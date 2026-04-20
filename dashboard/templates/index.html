@@ -1460,6 +1460,113 @@
   .icon-btn svg { width: 12px; height: 12px; }
   .cog:hover { transform: rotate(60deg); }
 
+  /* ── UPDATE MODAL ───────────────────────────────────── */
+  .update-modal-body {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .update-versions {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .update-versions .u-current { color: var(--text-fade); text-decoration: line-through; }
+  .update-versions .u-arrow   { color: var(--text-fade); }
+  .update-versions .u-latest  { color: var(--add-fg); font-weight: 700; font-size: 15px; }
+  .update-meta {
+    color: var(--text-fade);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .update-meta a { color: var(--text-dim); text-decoration: underline; text-decoration-color: var(--line); }
+  .update-meta a:hover { color: var(--add-fg); text-decoration-color: var(--add-fg); }
+  .update-notes {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .update-notes:empty::before {
+    content: "(no release notes)";
+    color: var(--text-fade);
+    font-style: italic;
+  }
+  .update-progress {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    background: var(--bg);
+  }
+  .update-progress[data-active="true"] { display: flex; }
+  .update-progress .u-phase {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .update-progress .u-phase::before {
+    content: "●";
+    color: var(--add-fg);
+    font-size: 9px;
+    animation: updateDot 1.2s ease-in-out infinite;
+  }
+  .update-progress[data-phase="done"] .u-phase::before { color: var(--add-fg); animation: none; }
+  .update-progress[data-phase="error"] .u-phase::before { color: var(--del-fg); animation: none; }
+  @keyframes updateDot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .update-progress .u-bar {
+    height: 4px;
+    background: var(--line-soft);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .update-progress .u-bar-fill {
+    height: 100%;
+    background: var(--add-fg);
+    width: 0%;
+    transition: width 0.15s ease-out;
+  }
+  .update-progress[data-indeterminate="true"] .u-bar-fill {
+    width: 100% !important;
+    background: linear-gradient(
+      90deg,
+      transparent, var(--add-fg), transparent
+    );
+    animation: updateShimmer 1.6s linear infinite;
+  }
+  @keyframes updateShimmer {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(100%); }
+  }
+  .update-progress .u-detail {
+    font-size: 10.5px;
+    color: var(--text-fade);
+    font-variant-numeric: tabular-nums;
+  }
+  .update-progress .u-detail.error {
+    color: var(--del-fg);
+  }
+
   /* ── MODAL ──────────────────────────────────────────── */
   .scrim {
     position: fixed; inset: 0;
@@ -1861,14 +1968,12 @@
 
 <header>
   <span class="brand" id="brand" title="grammar hook">grammar</span>
-  <a
+  <button
     class="update-pill"
     id="update-pill"
-    href="#"
-    title="A newer version is available. Click for upgrade instructions."
-    target="_blank"
-    rel="noopener"
-  >update</a>
+    type="button"
+    title="A newer version is available. Click to see release notes and install."
+  >update</button>
   <button
     class="paused-pill"
     id="paused-pill"
@@ -2066,6 +2171,33 @@
     <div class="modal-footer">
       <button class="btn" id="modal-cancel">cancel</button>
       <button class="btn primary" id="modal-save">save</button>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="update-scrim" aria-hidden="true">
+  <div class="modal" role="dialog" aria-labelledby="update-title">
+    <header>
+      <span id="update-title">update available</span>
+      <button class="x" id="update-close" aria-label="close">✕</button>
+    </header>
+    <div class="modal-body update-modal-body">
+      <div class="update-versions">
+        <span class="u-current" id="u-current">—</span>
+        <span class="u-arrow">→</span>
+        <span class="u-latest" id="u-latest">—</span>
+      </div>
+      <div class="update-meta" id="u-meta"></div>
+      <div class="update-notes" id="u-notes"></div>
+      <div class="update-progress" id="u-progress" data-active="false" data-indeterminate="true" data-phase="idle">
+        <span class="u-phase" id="u-phase">preparing…</span>
+        <div class="u-bar"><div class="u-bar-fill" id="u-bar-fill"></div></div>
+        <span class="u-detail" id="u-detail"></span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="update-cancel">close</button>
+      <button class="btn primary" id="update-install">install</button>
     </div>
   </div>
 </div>
@@ -4238,33 +4370,69 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
   applySettings();
 })();
 
-// ── Update checker ────────────────────────────────────────────────────
-// Fetches /api/update/check which reads the configured manifest_url. If the
-// remote manifest's version is newer than VERSION, show a small "update"
-// pill in the header linking to the download / changelog URL.
+// ── Update checker + modal ────────────────────────────────────────────
+// Polls /api/update/check (GitHub Releases API under the hood). When a
+// newer release exists, shows the "update" pill in the header. Clicking
+// the pill opens a modal with release notes + Install button. Install
+// triggers POST /api/update/apply and streams SSE progress back. When the
+// "restarting" phase lands we disconnect, poll /api/version for the new
+// version, then reload.
 (() => {
   const pill = document.getElementById('update-pill');
   const brand = document.getElementById('brand');
   if (!pill || !brand) return;
 
+  const scrim = document.getElementById('update-scrim');
+  const closeBtn = document.getElementById('update-close');
+  const cancelBtn = document.getElementById('update-cancel');
+  const installBtn = document.getElementById('update-install');
+  const curEl = document.getElementById('u-current');
+  const latEl = document.getElementById('u-latest');
+  const metaEl = document.getElementById('u-meta');
+  const notesEl = document.getElementById('u-notes');
+  const progressEl = document.getElementById('u-progress');
+  const phaseEl = document.getElementById('u-phase');
+  const barFillEl = document.getElementById('u-bar-fill');
+  const detailEl = document.getElementById('u-detail');
+
+  let latestStatus = null;
+  let currentEventSource = null;
+
+  const escapeHtml = (value) =>
+    String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const formatBytes = (bytes) => {
+    if (bytes == null) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const PHASE_LABEL = {
+    downloading: 'downloading…',
+    extracting: 'extracting…',
+    installing: 'installing (uv sync, rsync)…',
+    restarting: 'restarting dashboard…',
+    done: 'installed — reloading',
+    error: 'failed',
+  };
+
+  const setPillVisible = (visible) => {
+    pill.dataset.visible = visible ? 'true' : 'false';
+  };
+
   const renderStatus = (status) => {
+    latestStatus = status;
     if (!status || !status.update_available) {
-      pill.dataset.visible = 'false';
+      setPillVisible(false);
       return;
     }
-    const manifest = status.manifest || {};
-    const href =
-      manifest.download_url ||
-      manifest.changelog_url ||
-      manifest.release_url ||
-      '#';
-    pill.href = href;
-    pill.dataset.visible = 'true';
-    const releaseNotes = (manifest.release_notes || '').slice(0, 240);
+    setPillVisible(true);
+    const notes = (status.release_notes || '').slice(0, 240);
     pill.title =
       `Update available: ${status.latest} (you have ${status.current})` +
-      (releaseNotes ? `\n\n${releaseNotes}` : '') +
-      '\n\nClick to open upgrade instructions.';
+      (notes ? `\n\n${notes}` : '') +
+      '\n\nClick to see release notes and install.';
     brand.title = `grammar hook · v${status.current} (update to ${status.latest} available)`;
   };
 
@@ -4288,10 +4456,194 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
     } catch (_) { /* best effort */ }
   };
 
+  const resetProgress = () => {
+    progressEl.dataset.active = 'false';
+    progressEl.dataset.indeterminate = 'true';
+    progressEl.dataset.phase = 'idle';
+    phaseEl.textContent = 'preparing…';
+    barFillEl.style.width = '0%';
+    detailEl.textContent = '';
+    detailEl.classList.remove('error');
+  };
+
+  const openModal = () => {
+    if (!latestStatus || !latestStatus.update_available) return;
+    curEl.textContent = latestStatus.current || '—';
+    latEl.textContent = latestStatus.latest || '—';
+
+    const metaBits = [];
+    if (latestStatus.published_at) {
+      const d = new Date(latestStatus.published_at);
+      if (!Number.isNaN(d.getTime())) metaBits.push(`released ${d.toISOString().slice(0, 10)}`);
+    }
+    if (latestStatus.release_url) {
+      metaBits.push(`<a href="${escapeHtml(latestStatus.release_url)}" target="_blank" rel="noopener">open on github ↗</a>`);
+    }
+    metaEl.innerHTML = metaBits.join(' · ');
+
+    notesEl.textContent = latestStatus.release_notes || '';
+    resetProgress();
+    installBtn.disabled = false;
+    installBtn.textContent = 'install';
+    cancelBtn.textContent = 'close';
+
+    scrim.classList.add('open');
+    scrim.setAttribute('aria-hidden', 'false');
+  };
+
+  const closeModal = () => {
+    // Don't let the user dismiss mid-install — prevents them from dropping
+    // the SSE subscription and missing the final "restarting" signal.
+    if (currentEventSource) return;
+    scrim.classList.remove('open');
+    scrim.setAttribute('aria-hidden', 'true');
+  };
+
+  const waitForRestart = async () => {
+    // After "restarting" event arrives the server exits; wait for the new
+    // process to come up, then reload the page to load fresh assets.
+    phaseEl.textContent = 'restarting dashboard…';
+    progressEl.dataset.indeterminate = 'true';
+    barFillEl.style.width = '100%';
+
+    const deadline = Date.now() + 60_000;
+    while (Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      try {
+        const response = await fetch('/api/version', { cache: 'no-store' });
+        if (response.ok) {
+          const payload = await response.json();
+          if (payload && payload.version) {
+            detailEl.textContent = `now running v${payload.version}`;
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            window.location.reload();
+            return;
+          }
+        }
+      } catch (_) { /* still down, keep polling */ }
+    }
+    detailEl.textContent = 'server took too long to come back — reload manually.';
+    detailEl.classList.add('error');
+    progressEl.dataset.phase = 'error';
+  };
+
+  const handleEvent = (event) => {
+    const phase = event.phase;
+    progressEl.dataset.phase = phase;
+    phaseEl.textContent = PHASE_LABEL[phase] || phase;
+
+    if (phase === 'downloading') {
+      if (typeof event.fraction === 'number') {
+        progressEl.dataset.indeterminate = 'false';
+        barFillEl.style.width = `${Math.round(event.fraction * 100)}%`;
+      } else {
+        progressEl.dataset.indeterminate = 'true';
+      }
+      if (event.bytes_downloaded != null) {
+        const total = event.bytes_total ? ` / ${formatBytes(event.bytes_total)}` : '';
+        detailEl.textContent = `${formatBytes(event.bytes_downloaded)}${total}`;
+      }
+    } else if (phase === 'extracting' || phase === 'installing' || phase === 'restarting') {
+      progressEl.dataset.indeterminate = 'true';
+      barFillEl.style.width = '100%';
+      detailEl.textContent = '';
+    } else if (phase === 'done') {
+      progressEl.dataset.indeterminate = 'false';
+      barFillEl.style.width = '100%';
+      if (event.already_latest) {
+        detailEl.textContent = `already on v${event.version}`;
+        installBtn.textContent = 'close';
+        installBtn.disabled = false;
+      }
+    } else if (phase === 'error') {
+      progressEl.dataset.indeterminate = 'false';
+      barFillEl.style.width = '100%';
+      detailEl.textContent = event.message || 'update failed';
+      detailEl.classList.add('error');
+      installBtn.textContent = 'retry';
+      installBtn.disabled = false;
+      cancelBtn.textContent = 'close';
+    }
+  };
+
+  const startInstall = async () => {
+    installBtn.disabled = true;
+    installBtn.textContent = 'installing…';
+    cancelBtn.disabled = true;
+    detailEl.textContent = '';
+    detailEl.classList.remove('error');
+    progressEl.dataset.active = 'true';
+    progressEl.dataset.phase = 'starting';
+    progressEl.dataset.indeterminate = 'true';
+    phaseEl.textContent = 'starting…';
+
+    let taskId;
+    try {
+      const response = await fetch('/api/update/apply', { method: 'POST' });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+      taskId = payload.task_id;
+    } catch (error) {
+      handleEvent({ phase: 'error', message: error.message });
+      cancelBtn.disabled = false;
+      return;
+    }
+
+    currentEventSource = new EventSource(`/api/update/progress/${encodeURIComponent(taskId)}`);
+    let restartSeen = false;
+    currentEventSource.onmessage = (msg) => {
+      try {
+        const event = JSON.parse(msg.data);
+        handleEvent(event);
+        if (event.phase === 'restarting') {
+          restartSeen = true;
+          currentEventSource.close();
+          currentEventSource = null;
+          cancelBtn.disabled = false;
+          waitForRestart();
+        } else if (event.phase === 'done' && !restartSeen) {
+          // "already latest" case — no restart happens. Let user close.
+          currentEventSource.close();
+          currentEventSource = null;
+          cancelBtn.disabled = false;
+          installBtn.textContent = 'close';
+          installBtn.disabled = false;
+        } else if (event.phase === 'error') {
+          currentEventSource.close();
+          currentEventSource = null;
+          cancelBtn.disabled = false;
+        }
+      } catch (error) {
+        console.error('bad SSE payload', error, msg.data);
+      }
+    };
+    currentEventSource.onerror = () => {
+      // SSE closed unexpectedly. If we already saw restarting, that's
+      // actually normal — server exited. Otherwise, surface the failure.
+      if (currentEventSource) {
+        currentEventSource.close();
+        currentEventSource = null;
+      }
+      if (!restartSeen) {
+        handleEvent({ phase: 'error', message: 'connection to update stream lost' });
+        cancelBtn.disabled = false;
+      }
+    };
+  };
+
+  pill.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  installBtn.addEventListener('click', () => {
+    if (installBtn.textContent === 'close') { closeModal(); return; }
+    startInstall();
+  });
+  scrim.addEventListener('click', (event) => {
+    if (event.target === scrim) closeModal();
+  });
+
   seedBrandTitle();
   fetchStatus();
-  // Re-check every 6h while the dashboard is open. The server caches the
-  // result per `check_interval_hours`, so this is a no-op most of the time.
   setInterval(() => fetchStatus(false), 6 * 60 * 60 * 1000);
 })();
 </script>

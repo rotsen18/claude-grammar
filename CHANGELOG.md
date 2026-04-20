@@ -9,6 +9,36 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-04-20
+
+### Added
+- **One-click in-dashboard updates** — the update pill now opens a modal
+  with release notes and an Install button. Clicking Install downloads the
+  release zip from GitHub, extracts it, runs `install.sh`, and restarts the
+  dashboard. Live progress (downloading → extracting → installing →
+  restarting) is streamed over SSE; the page auto-reloads when the new
+  version is up.
+- **Kill switch** — new `hook_enabled` setting toggles grammar correction
+  without uninstalling. Header shows an amber `⏸ paused` pill when off;
+  click to resume. `CLAUDE_GRAMMAR_DISABLED=1` env var overrides (env wins).
+- `GET /api/update/apply` + `GET /api/update/progress/<task_id>` — backend
+  side of the new update flow.
+- `release.sh` — tags + pushes + creates a GitHub Release with notes pulled
+  from the matching `## [X.Y.Z]` section of CHANGELOG.md.
+
+### Changed
+- **Update source swap** — `updater.py` now reads
+  `/repos/<owner>/<repo>/releases/latest` from GitHub instead of a
+  self-hosted `manifest.json`. Settings key renamed from
+  `update.manifest_url` to `update.github_repo`.
+- Docs split — README slimmed to user-facing essentials, technical
+  content (architecture, DB schema, settings internals, invariants) moved
+  to `CLAUDE.md` for developers.
+
+### Removed
+- `publish.sh`, `upgrade.sh`, `package.sh` — obsolete now that updates
+  flow through GitHub Releases.
+
 ## [0.2.0] — 2026-04-20
 
 ### Added

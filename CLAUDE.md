@@ -77,8 +77,7 @@ claude-grammar/
 │   └── templates/*.html # UI (index.html is ≈ 4k lines)
 ├── scripts/             # one-off dev tools (corrector comparison, etc.)
 ├── install.sh           # idempotent installer → ~/.claude/hooks/grammar/
-├── publish.sh           # legacy: builds zip + manifest.json
-└── upgrade.sh           # legacy: client-side upgrade runner
+└── release.sh           # tags + pushes + creates GitHub Release
 ```
 
 ## Commands
@@ -291,16 +290,26 @@ injection-hardening pattern from `correctors/groq.py`.
 
 ## Releasing
 
-(Flow is being migrated to GitHub Releases as of 0.3.0. See
-`CHANGELOG.md` for what's current.)
+The dashboard update flow reads `/repos/<owner>/<repo>/releases/latest`
+from GitHub, so the only thing you need to publish is a tag + release.
 
-1. Bump `VERSION` (and `pyproject.toml` `version` to match).
-2. Add an entry to `CHANGELOG.md`.
-3. Create a git tag `vX.Y.Z` and push.
-4. `gh release create vX.Y.Z --generate-notes` (or the `release.sh`
-   wrapper once it lands).
-5. Dashboards worldwide pick it up via `GET /api/update/check` within
-   `update.check_interval_hours`.
+```bash
+# 1. Bump VERSION and pyproject.toml `version` to the same string.
+# 2. Add a `## [X.Y.Z] — YYYY-MM-DD` section to CHANGELOG.md.
+# 3. Commit, push.
+bash release.sh
+```
+
+`release.sh` tags `vX.Y.Z`, pushes the tag, and creates the GitHub Release
+with notes pulled from the matching CHANGELOG section (falling back to
+`gh release create --generate-notes` if the section is missing).
+
+Installed dashboards pick up the new release on their next poll
+(`update.check_interval_hours`, default 24h) — users can force a check
+right away via the update pill or `curl /api/update/check?force=1`.
+
+Requirements: `gh` CLI authenticated on the repo-owning account
+(`gh auth status` should show that account active).
 
 ## Known rough edges
 
@@ -309,5 +318,3 @@ injection-hardening pattern from `correctors/groq.py`.
 - The legacy Groq-quota endpoint (`/api/groq/quota`) and its JSON file on
   disk are still populated on every request but no UI consumes them.
   Intentionally kept for ad-hoc queries.
-- `publish.sh` + `upgrade.sh` + manifest.json flow is legacy — the GitHub
-  Releases-based update flow replaces them in 0.3.0.
