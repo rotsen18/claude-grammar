@@ -287,6 +287,29 @@
   .update-pill[data-visible="true"] { display: inline-flex; }
   .update-pill::before { content: "↑"; font-weight: 700; }
   .update-pill:hover { background: color-mix(in srgb, var(--add-fg) 20%, transparent); }
+
+  /* Paused pill — shown when hook_enabled=false. Amber tone distinguishes
+     it from the green update pill. Clicking re-enables the hook. */
+  .paused-pill {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 7px;
+    border: 1px solid var(--cat-spelling, #ffb454);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--cat-spelling, #ffb454) 12%, transparent);
+    color: var(--cat-spelling, #ffb454);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+  }
+  .paused-pill[data-visible="true"] { display: inline-flex; }
+  .paused-pill::before { content: "⏸"; font-weight: 400; }
+  body[data-hook-enabled="false"] .brand { opacity: 0.55; }
+
   /* livestream status light — theme-independent colours.
      green = healthy · orange = transient fix · red = needs attention.
      Animation speed on green encodes activity (not health):
@@ -1846,6 +1869,13 @@
     target="_blank"
     rel="noopener"
   >update</a>
+  <button
+    class="paused-pill"
+    id="paused-pill"
+    type="button"
+    title="Grammar correction is paused. Click to resume."
+    aria-label="grammar correction paused — click to resume"
+  >paused</button>
   <span class="pulse" id="pulse" data-state="down" role="button" tabindex="0" title="livestream"></span>
   <span class="corrector-pill" id="corrector-pill" title="active corrector">
     <span class="name" id="corrector-name">—</span>
@@ -2004,6 +2034,14 @@
       </div>
 
       <div class="modal-tab-panel" data-panel="general" role="tabpanel">
+        <div class="field toggle-field">
+          <label class="toggle-row">
+            <input type="checkbox" id="hook-enabled" />
+            <span class="field-label">grammar correction enabled</span>
+          </label>
+          <span class="field-hint">Uncheck to pause prompt rewriting — dashboard, history, and translation stay available. Can also be overridden with <code>CLAUDE_GRAMMAR_DISABLED=1</code> in your shell environment (env wins over this toggle).</span>
+        </div>
+
         <div class="grid-2">
           <div class="field">
             <span class="field-label">bypass marker</span>
@@ -3677,6 +3715,9 @@ async function loadSettings() {
     apiKeyInput.value = '';
     const dogsEnabled = (currentSettings.ui || {}).dogs_enabled;
     document.getElementById('dogs-enabled').checked = dogsEnabled !== false;
+    const hookEnabled = currentSettings.hook_enabled !== false;
+    document.getElementById('hook-enabled').checked = hookEnabled;
+    applyHookEnabledState(hookEnabled);
     renderTranslationTargetOptions(
       data.translation_languages || [],
       (currentSettings.translation || {}).target_language || 'uk',
@@ -3699,6 +3740,7 @@ function getActiveSegment(container) {
 async function saveSettings() {
   const patch = {
     corrector: getActiveSegment(correctorSeg),
+    hook_enabled: document.getElementById('hook-enabled').checked,
     ui: {
       theme: getActiveSegment(themeSwatches) || 'phosphor',
       chat_format: getActiveSegment(chatFormatSeg) || 'full',
@@ -3918,6 +3960,41 @@ function applyDogsEnabled(enabled) {
   }
 }
 
+// Mirror the hook_enabled setting into (a) the body data attribute for the
+// dimmed-brand CSS, and (b) the paused pill in the header. When disabled,
+// clicking the pill re-enables via a quick settings patch.
+function applyHookEnabledState(enabled) {
+  const on = enabled !== false;
+  document.body.dataset.hookEnabled = on ? 'true' : 'false';
+  const pill = document.getElementById('paused-pill');
+  if (pill) pill.dataset.visible = on ? 'false' : 'true';
+}
+
+async function setHookEnabled(enabled) {
+  try {
+    const response = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ settings: { hook_enabled: !!enabled } }),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    currentSettings = data.settings;
+    const hookEnabled = data.settings.hook_enabled !== false;
+    applyHookEnabledState(hookEnabled);
+    const toggle = document.getElementById('hook-enabled');
+    if (toggle) toggle.checked = hookEnabled;
+    if (typeof toast === 'function') {
+      toast(hookEnabled ? 'grammar correction resumed' : 'grammar correction paused');
+    }
+  } catch (error) {
+    console.error('setHookEnabled failed', error);
+    if (typeof toast === 'function') toast('failed to toggle hook: ' + error.message, true);
+  }
+}
+
+document.getElementById('paused-pill')?.addEventListener('click', () => setHookEnabled(true));
+
 // Apply initial theme + chat format + dogs before corrections render (no FOUC)
 (async () => {
   try {
@@ -3926,6 +4003,7 @@ function applyDogsEnabled(enabled) {
     applyTheme((data.settings.ui || {}).theme);
     applyChatFormat((data.settings.ui || {}).chat_format);
     applyDogsEnabled((data.settings.ui || {}).dogs_enabled);
+    applyHookEnabledState(data.settings.hook_enabled !== false);
   } catch (e) { /* best effort */ }
 })();
 

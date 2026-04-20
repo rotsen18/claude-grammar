@@ -36,6 +36,10 @@ ENV_FILE = _ENV_FILE
 # at runtime; never merged with this dict at read time.
 INITIAL_DEFAULTS: dict = {
     "corrector": "claude_cli",
+    # Global kill switch. When False, grammar_fix.py passes every prompt
+    # through untouched. Toggle from the dashboard or override with the
+    # CLAUDE_GRAMMAR_DISABLED env var (env wins).
+    "hook_enabled": True,
     "min_natural_text_length": 10,
     "separator": ",,",
     "bypass_marker": "^^^",
@@ -44,10 +48,10 @@ INITIAL_DEFAULTS: dict = {
         "port": 3333,
     },
     "update": {
-        # Leave empty to disable update checks entirely. Point this at a
-        # publicly reachable manifest.json (see updater.py for the schema).
-        # Example: "https://example.com/grammar-hook/manifest.json"
-        "manifest_url": "",
+        # GitHub repo to check for new releases — "owner/repo". Empty
+        # disables update checks entirely. Public repos are fetched
+        # unauthenticated; private repos need a PAT in $GITHUB_TOKEN.
+        "github_repo": "rotsen18/claude-grammar",
         "check_interval_hours": 24,
         "auto_check": True,
     },

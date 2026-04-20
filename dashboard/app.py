@@ -31,6 +31,7 @@ HEARTBEAT_INTERVAL_SECONDS = 15
 
 SETTINGS_WRITABLE_KEYS = {
     "corrector",
+    "hook_enabled",
     "bypass_marker",
     "separator",
     "min_natural_text_length",
@@ -235,6 +236,8 @@ def update_settings_endpoint() -> Response:
 
     if updated.get("corrector") not in CORRECTOR_OPTIONS:
         updated["corrector"] = current.get("corrector", "groq")
+
+    updated["hook_enabled"] = bool(updated.get("hook_enabled", True))
 
     ui = updated.get("ui", {}) or {}
     if ui.get("theme") == "cyan":

@@ -16,6 +16,7 @@ SETTINGS = storage.get_all_settings()
 
 
 CORRECTOR = SETTINGS["corrector"]
+HOOK_ENABLED = SETTINGS.get("hook_enabled", True)
 MIN_NATURAL_TEXT_LENGTH = SETTINGS["min_natural_text_length"]
 SEPARATOR = SETTINGS["separator"]
 BYPASS_MARKER = SETTINGS["bypass_marker"]

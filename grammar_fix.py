@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -7,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import storage
-from settings import BYPASS_MARKER, CORRECTOR, MIN_NATURAL_TEXT_LENGTH
+from settings import BYPASS_MARKER, CORRECTOR, HOOK_ENABLED, MIN_NATURAL_TEXT_LENGTH
 from correctors.base import BaseCorrector
 from correctors.claude_cli import ClaudeCLICorrector
 from correctors.groq import GroqCorrector
@@ -17,7 +18,19 @@ from parser import parse_prompt
 
 DEDUPE_WINDOW_SECONDS = 60
 
+_DISABLE_ENV_VAR = "CLAUDE_GRAMMAR_DISABLED"
+_DISABLE_TRUTHY = {"1", "true", "yes", "on"}
+
 log = get_logger()
+
+
+def _is_disabled() -> tuple[bool, str]:
+    env_value = os.environ.get(_DISABLE_ENV_VAR, "").strip().lower()
+    if env_value in _DISABLE_TRUTHY:
+        return True, f"env:{_DISABLE_ENV_VAR}"
+    if not HOOK_ENABLED:
+        return True, "settings:hook_enabled=false"
+    return False, ""
 
 
 def _ping_dashboard_pending(session_id: str, cwd: str) -> None:
@@ -46,6 +59,13 @@ def get_corrector(name: str) -> BaseCorrector:
 
 
 def main() -> None:
+    disabled, reason = _is_disabled()
+    if disabled:
+        # Log at INFO once in a while so the user can see WHY corrections
+        # stopped. Pass-through means Claude sees the prompt verbatim.
+        log.info("Hook disabled (%s) — passing prompt through unchanged", reason)
+        sys.exit(0)
+
     try:
         input_data = json.load(sys.stdin)
     except Exception as exc:
