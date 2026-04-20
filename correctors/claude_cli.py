@@ -1,9 +1,9 @@
 import json
 import subprocess
 
-from settings import CLAUDE_CLI_MODEL, CLAUDE_CLI_SYSTEM_PROMPT, CLAUDE_CLI_TIMEOUT_SECONDS
+from grammar.settings import CLAUDE_CLI_MODEL, CLAUDE_CLI_SYSTEM_PROMPT, CLAUDE_CLI_TIMEOUT_SECONDS
 from correctors.base import BaseCorrector, Correction, CorrectionResult
-from hook_log import get_logger
+from grammar.hook_log import get_logger
 
 log = get_logger()
 

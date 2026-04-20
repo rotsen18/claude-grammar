@@ -9,7 +9,15 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
-## [0.3.4] — 2026-04-20
+### Changed
+- Project layout: all library modules (`config`, `storage`, `settings`,
+  `hook_log`, `parser`, `reports`, `translator`, `updater`, `version`)
+  moved under a `grammar/` package. Entry scripts (`grammar_fix.py`,
+  `server_check.py`) stay at the root so `~/.claude/settings.json`
+  hook commands don't change. Imports updated accordingly; no runtime
+  behavior change.
+- `release.sh` removed — superseded by the `Release` GitHub Actions
+  workflow (Actions → Release → Run workflow).
 
 ### Changed
 - Internal: releases now cut via a `workflow_dispatch` GitHub Actions job

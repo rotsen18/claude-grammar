@@ -15,14 +15,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import requests
 from flask import Flask, Response, jsonify, render_template, request
 
-import reports as reports_module
-import storage
-import translator
-import updater
-from config import DATA_DIR, ENV_FILE
-from hook_log import LOG_FILE, get_logger, tail_log
-from settings import DASHBOARD_HOST, DASHBOARD_PORT, GROQ_FALLBACK_MODELS, GROQ_MODEL
-from version import get_version
+from grammar import reports as reports_module
+from grammar import storage, translator, updater
+from grammar.config import DATA_DIR, ENV_FILE
+from grammar.hook_log import LOG_FILE, get_logger, tail_log
+from grammar.settings import DASHBOARD_HOST, DASHBOARD_PORT, GROQ_FALLBACK_MODELS, GROQ_MODEL
+from grammar.version import get_version
 
 log = get_logger()
 

@@ -7,14 +7,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-import storage
-from settings import BYPASS_MARKER, CORRECTOR, HOOK_ENABLED, MIN_NATURAL_TEXT_LENGTH
+from grammar import storage
+from grammar.settings import BYPASS_MARKER, CORRECTOR, HOOK_ENABLED, MIN_NATURAL_TEXT_LENGTH
 from correctors.base import BaseCorrector
 from correctors.claude_cli import ClaudeCLICorrector
 from correctors.groq import GroqCorrector
 from correctors.languagetool import LanguageToolCorrector
-from hook_log import get_logger
-from parser import parse_prompt
+from grammar.hook_log import get_logger
+from grammar.parser import parse_prompt
 
 DEDUPE_WINDOW_SECONDS = 60
 
@@ -37,7 +37,7 @@ def _ping_dashboard_pending(session_id: str, cwd: str) -> None:
     try:
         import requests  # noqa: PLC0415
 
-        from settings import DASHBOARD_HOST, DASHBOARD_PORT  # noqa: PLC0415
+        from grammar.settings import DASHBOARD_HOST, DASHBOARD_PORT  # noqa: PLC0415
 
         requests.post(
             f"http://{DASHBOARD_HOST}:{DASHBOARD_PORT}/api/hook/pending",

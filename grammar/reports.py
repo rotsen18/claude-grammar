@@ -4,8 +4,8 @@ import sys
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
-import storage
-from settings import REPORTS_CLAUDE_MODEL, REPORTS_CLAUDE_TIMEOUT_SECONDS
+from . import storage
+from .settings import REPORTS_CLAUDE_MODEL, REPORTS_CLAUDE_TIMEOUT_SECONDS
 
 TIME_RANGES = ("daily", "weekly", "monthly", "since_last", "all_time")
 

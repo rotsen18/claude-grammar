@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Iterator
 
-from config import DATA_DIR, DATABASE_FILE
+from .config import DATA_DIR, DATABASE_FILE
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS prompts (

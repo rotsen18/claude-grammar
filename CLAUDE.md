@@ -57,39 +57,43 @@ blocks.
 
 ```
 claude-grammar/
-├── grammar_fix.py       # UserPromptSubmit hook entry
-├── server_check.py      # SessionStart hook entry; launches dashboard
-├── parser.py            # prompt splitting (separator, bypass marker)
-├── storage.py           # SQLite layer (single source of truth for settings)
-├── config.py            # INITIAL_DEFAULTS + .env loading
-├── settings.py          # module-level constants read from DB at import
-├── version.py + VERSION # installed version (single source of truth)
-├── updater.py           # GitHub-Releases-backed update check
-├── translator.py        # EN↔configurable-language translator
-├── reports.py           # LLM-written summary reports
+├── grammar_fix.py             # UserPromptSubmit hook entry
+├── server_check.py            # SessionStart hook entry; launches dashboard
+├── grammar/                   # library package
+│   ├── parser.py              # prompt splitting (separator, bypass marker)
+│   ├── storage.py             # SQLite layer (single source of truth for settings)
+│   ├── config.py              # INITIAL_DEFAULTS + .env loading
+│   ├── settings.py            # module-level constants read from DB at import
+│   ├── version.py             # installed version reader (pairs with top-level VERSION)
+│   ├── updater.py             # GitHub-Releases-backed update check
+│   ├── translator.py          # EN↔configurable-language translator
+│   └── reports.py             # LLM-written summary reports
 ├── correctors/
 │   ├── base.py
-│   ├── groq.py          # default — fast, fallback chain, JSON schema
-│   ├── claude_cli.py    # uses local `claude -p` subscription
-│   └── languagetool.py  # free, rule-based, no LLM
+│   ├── groq.py                # default — fast, fallback chain, JSON schema
+│   ├── claude_cli.py          # uses local `claude -p` subscription
+│   └── languagetool.py        # free, rule-based, no LLM
 ├── dashboard/
-│   ├── app.py           # Flask
-│   └── templates/*.html # UI (index.html is ≈ 4k lines)
-├── scripts/             # one-off dev tools (corrector comparison, etc.)
-├── install.sh           # idempotent installer → ~/.claude/hooks/grammar/
-└── release.sh           # tags + pushes + creates GitHub Release
+│   ├── app.py                 # Flask
+│   └── templates/*.html       # UI (index.html is ≈ 4k lines)
+├── scripts/                   # one-off dev tools (corrector comparison, etc.)
+├── .github/workflows/         # CI (release.yml — workflow_dispatch)
+├── install.sh                 # idempotent installer → ~/.claude/hooks/grammar/
+├── get.sh                     # curl-able bootstrap (fetches latest release, runs install.sh)
+└── VERSION                    # plain-text version, source of truth for releases
 ```
 
 ## Commands
 
-Everything runs under `uv`. Stay in the repo root — `cd`-ing into subdirs
-breaks `from config import ...` style imports.
+Everything runs under `uv`. Stay in the repo root — the entry scripts
+(`grammar_fix.py`, `server_check.py`) and subpackages (`grammar/`,
+`correctors/`, `dashboard/`) assume the project root is on `sys.path`.
 
 ```bash
-uv sync --project .                                    # install deps
-uv run --project . python -m dashboard.app             # run dashboard manually
-uv run --project . python -c "import storage; ..."     # ad-hoc smoke tests
-curl -X POST http://127.0.0.1:3333/api/server/restart  # reload after code edits
+uv sync --project .                                           # install deps
+uv run --project . python -m dashboard.app                    # run dashboard manually
+uv run --project . python -c "from grammar import storage"   # ad-hoc smoke tests
+curl -X POST http://127.0.0.1:3333/api/server/restart         # reload after code edits
 ```
 
 No formal test suite. Verify changes with inline `uv run python -c`
@@ -291,25 +295,24 @@ injection-hardening pattern from `correctors/groq.py`.
 ## Releasing
 
 The dashboard update flow reads `/repos/<owner>/<repo>/releases/latest`
-from GitHub, so the only thing you need to publish is a tag + release.
+from GitHub, so publishing a release is just: bump version + tag.
 
-```bash
-# 1. Bump VERSION and pyproject.toml `version` to the same string.
-# 2. Add a `## [X.Y.Z] — YYYY-MM-DD` section to CHANGELOG.md.
-# 3. Commit, push.
-bash release.sh
-```
+1. Add changelog entries under `## [Unreleased]` in `CHANGELOG.md` as you
+   work. Commit normally.
+2. Go to **Actions → Release → Run workflow**, pick `patch`/`minor`/`major`,
+   click **Run workflow**.
 
-`release.sh` tags `vX.Y.Z`, pushes the tag, and creates the GitHub Release
-with notes pulled from the matching CHANGELOG section (falling back to
-`gh release create --generate-notes` if the section is missing).
+The workflow reads `VERSION`, computes the next version, bumps
+`VERSION` + `pyproject.toml`, promotes `## [Unreleased]` to a dated
+version header, commits, tags, and creates the GitHub Release — all
+running as `github-actions[bot]`, so no local `gh` auth needed.
 
 Installed dashboards pick up the new release on their next poll
-(`update.check_interval_hours`, default 24h) — users can force a check
+(`update.check_interval_hours`, default 1h) — users can force a check
 right away via the update pill or `curl /api/update/check?force=1`.
 
-Requirements: `gh` CLI authenticated on the repo-owning account
-(`gh auth status` should show that account active).
+Guardrails: the workflow fails fast if `## [Unreleased]` is empty, or if
+`VERSION` isn't strict `X.Y.Z`.
 
 ## Known rough edges
 

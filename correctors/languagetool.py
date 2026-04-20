@@ -2,9 +2,9 @@ import time
 
 import requests
 
-from settings import LANGUAGETOOL_API_URL, LANGUAGETOOL_LANGUAGE
+from grammar.settings import LANGUAGETOOL_API_URL, LANGUAGETOOL_LANGUAGE
 from correctors.base import BaseCorrector, Correction, CorrectionResult
-from hook_log import get_logger
+from grammar.hook_log import get_logger
 
 log = get_logger()
 

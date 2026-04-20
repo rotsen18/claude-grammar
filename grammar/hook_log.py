@@ -3,7 +3,7 @@ import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-from config import DATA_DIR
+from .config import DATA_DIR
 
 LOG_FILE = DATA_DIR / "hook.log"
 _MAX_BYTES = 512 * 1024

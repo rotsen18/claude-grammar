@@ -20,9 +20,9 @@ import os
 
 import requests
 
-import storage
-from hook_log import get_logger
-from settings import (
+from . import storage
+from .hook_log import get_logger
+from .settings import (
     GROQ_API_KEY_ENV,
     GROQ_API_KEY_OVERRIDE,
     GROQ_BASE_URL,

@@ -23,9 +23,9 @@ from datetime import datetime, timezone
 
 import requests
 
-from config import DATA_DIR
-from hook_log import get_logger
-from version import get_version, is_newer
+from .config import DATA_DIR
+from .hook_log import get_logger
+from .version import get_version, is_newer
 
 log = get_logger()
 

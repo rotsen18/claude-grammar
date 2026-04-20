@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from config import DATA_DIR
+from grammar.config import DATA_DIR
 from correctors.claude_cli import ClaudeCLICorrector
 from correctors.groq import GroqCorrector
 from correctors.languagetool import LanguageToolCorrector

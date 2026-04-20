@@ -12,9 +12,10 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-_BASE = Path(__file__).resolve().parent
-_VERSION_FILE = _BASE / "VERSION"
-_PYPROJECT = _BASE / "pyproject.toml"
+# VERSION / pyproject.toml live at the project root — one level up from the package.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_VERSION_FILE = _PROJECT_ROOT / "VERSION"
+_PYPROJECT = _PROJECT_ROOT / "pyproject.toml"
 
 
 def _read_version_file() -> str | None:

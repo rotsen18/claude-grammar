@@ -8,8 +8,8 @@ This module is the single place where `storage.init_db(INITIAL_DEFAULTS)` is
 called at import time — splitting it out of `config.py` avoids a circular
 import (storage → config → storage).
 """
-import storage
-from config import INITIAL_DEFAULTS
+from . import storage
+from .config import INITIAL_DEFAULTS
 
 storage.init_db(INITIAL_DEFAULTS)
 SETTINGS = storage.get_all_settings()

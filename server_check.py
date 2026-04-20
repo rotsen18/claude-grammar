@@ -9,8 +9,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import DATA_DIR
-from settings import DASHBOARD_HOST, DASHBOARD_PORT
+from grammar.config import DATA_DIR
+from grammar.settings import DASHBOARD_HOST, DASHBOARD_PORT
 
 PID_FILE = DATA_DIR / "dashboard.pid"
 LOG_FILE = DATA_DIR / "dashboard.log"

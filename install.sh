@@ -185,7 +185,7 @@ else
 fi
 
 # 8. Smoke test
-if (cd "$HOOK_DIR" && uv run --quiet python -c "import storage, hook_log; hook_log.get_logger(); storage.init_db()" 2>&1); then
+if (cd "$HOOK_DIR" && uv run --quiet python -c "from grammar import hook_log, storage; hook_log.get_logger(); storage.init_db()" 2>&1); then
   ok "Smoke test passed"
 else
   err "Smoke test failed — check output above."

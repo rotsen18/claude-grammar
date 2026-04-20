@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 
 import requests
 
-from config import DATA_DIR
-from settings import (
+from grammar.config import DATA_DIR
+from grammar.settings import (
     GROQ_API_KEY_ENV,
     GROQ_API_KEY_OVERRIDE,
     GROQ_BASE_URL,
@@ -17,7 +17,7 @@ from settings import (
     GROQ_USE_JSON_SCHEMA,
 )
 from correctors.base import BaseCorrector, Correction, CorrectionResult
-from hook_log import get_logger
+from grammar.hook_log import get_logger
 
 log = get_logger()
 

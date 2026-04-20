@@ -2,8 +2,9 @@ import os
 import sys
 from pathlib import Path
 
-_BASE_DIR = Path(__file__).parent
-_ENV_FILE = _BASE_DIR / ".env"
+# Project root = parent of the `grammar/` package (where .env / pyproject / VERSION live).
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_ENV_FILE = _PROJECT_ROOT / ".env"
 
 
 def _load_env_file() -> None:

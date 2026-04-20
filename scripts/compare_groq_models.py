@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from config import DATA_DIR
+from grammar.config import DATA_DIR
 from correctors import groq as groq_module
 from correctors.groq import GroqCorrector
 
