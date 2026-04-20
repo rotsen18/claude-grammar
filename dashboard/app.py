@@ -211,6 +211,11 @@ def _run_installer(install_root: Path) -> None:
     script = install_root / "install.sh"
     if not script.exists():
         raise _UpdateError("install.sh missing from downloaded release")
+    # Propagate the active config dir so the installer lands files in the same
+    # place, regardless of what's set in the user's interactive shell.
+    # app.py lives at <CONFIG_DIR>/hooks/grammar/dashboard/app.py — walk up 3.
+    env = os.environ.copy()
+    env["CLAUDE_CONFIG_DIR"] = str(Path(__file__).resolve().parents[3])
     try:
         result = subprocess.run(
             ["bash", str(script)],
@@ -218,6 +223,7 @@ def _run_installer(install_root: Path) -> None:
             capture_output=True,
             text=True,
             timeout=300,
+            env=env,
         )
     except subprocess.TimeoutExpired:
         raise _UpdateError("installer timed out after 5 minutes") from None

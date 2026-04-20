@@ -6,8 +6,6 @@
 
 set -euo pipefail
 
-HOOK_DIR="$HOME/.claude/hooks/grammar"
-SETTINGS_FILE="$HOME/.claude/settings.json"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 GREEN='\033[0;32m'
@@ -27,6 +25,54 @@ if [[ "$(uname)" != "Darwin" ]]; then
   exit 1
 fi
 ok "macOS detected"
+
+# 1a. Resolve Claude config dir.
+# Priority: $CLAUDE_CONFIG_DIR > $HOME/.claude. If neither is writable and
+# stdin is a terminal, prompt the user for an alternate path.
+CONFIG_DIR_EXPLICIT=0
+if [[ -n "${CLAUDE_CONFIG_DIR:-}" ]]; then
+  CONFIG_DIR="$CLAUDE_CONFIG_DIR"
+  CONFIG_DIR_EXPLICIT=1
+else
+  CONFIG_DIR="$HOME/.claude"
+fi
+
+try_config_dir() {
+  local dir="$1"
+  mkdir -p "$dir" 2>/dev/null || return 1
+  [[ -w "$dir" ]] || return 1
+  return 0
+}
+
+if ! try_config_dir "$CONFIG_DIR"; then
+  if [[ "$CONFIG_DIR_EXPLICIT" == "1" ]]; then
+    err "CLAUDE_CONFIG_DIR=$CONFIG_DIR is not writable."
+    exit 1
+  fi
+  if [[ ! -t 0 ]]; then
+    err "Default $CONFIG_DIR is not writable, and stdin is not a terminal."
+    err "Re-run with:  CLAUDE_CONFIG_DIR=/path/to/claude bash install.sh"
+    exit 1
+  fi
+  warn "Can't write to default Claude config dir: $CONFIG_DIR"
+  while true; do
+    printf "  Enter alternate path (or Ctrl-C to abort): "
+    read -r user_input </dev/tty
+    user_input="${user_input/#\~/$HOME}"
+    if [[ -z "$user_input" ]]; then
+      continue
+    fi
+    if try_config_dir "$user_input"; then
+      CONFIG_DIR="$user_input"
+      break
+    fi
+    err "Can't write to: $user_input"
+  done
+fi
+ok "Claude config dir: $CONFIG_DIR"
+
+HOOK_DIR="$CONFIG_DIR/hooks/grammar"
+SETTINGS_FILE="$CONFIG_DIR/settings.json"
 
 # 2. uv check
 if ! command -v uv &>/dev/null; then
@@ -83,8 +129,8 @@ settings_path = Path("$SETTINGS_FILE")
 data = json.loads(settings_path.read_text() or "{}")
 data.setdefault("hooks", {})
 
-session_start_cmd = "uv run --project ~/.claude/hooks/grammar ~/.claude/hooks/grammar/server_check.py"
-user_prompt_cmd   = "uv run --project ~/.claude/hooks/grammar ~/.claude/hooks/grammar/grammar_fix.py"
+session_start_cmd = "uv run --project $HOOK_DIR $HOOK_DIR/server_check.py"
+user_prompt_cmd   = "uv run --project $HOOK_DIR $HOOK_DIR/grammar_fix.py"
 
 def has_hook(section, command):
     for entry in data["hooks"].get(section, []):
