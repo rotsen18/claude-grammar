@@ -9,6 +9,10 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+### Added
+- Installed version now shown in the dashboard header next to the brand
+  (e.g. `▚ GRAMMAR v0.3.5`). Previously only available as a hover tooltip.
+
 ## [0.3.5] — 2026-04-20
 
 ### Changed
@@ -20,6 +24,8 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
   behavior change.
 - `release.sh` removed — superseded by the `Release` GitHub Actions
   workflow (Actions → Release → Run workflow).
+
+## [0.3.4] — 2026-04-20
 
 ### Changed
 - Internal: releases now cut via a `workflow_dispatch` GitHub Actions job

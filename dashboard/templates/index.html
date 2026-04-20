@@ -268,6 +268,14 @@
     font-weight: 400;
     margin-right: 1px;
   }
+  .brand-version {
+    color: var(--text-fade);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    margin-left: 2px;
+  }
+  .brand-version:empty { display: none; }
   .update-pill {
     display: none;
     align-items: center;
@@ -1968,6 +1976,7 @@
 
 <header>
   <span class="brand" id="brand" title="grammar hook">grammar</span>
+  <span class="brand-version" id="brand-version" title="installed version"></span>
   <button
     class="update-pill"
     id="update-pill"
@@ -4442,6 +4451,8 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
       const payload = await response.json();
       if (payload && payload.version) {
         brand.title = `grammar hook · v${payload.version}`;
+        const versionEl = document.getElementById('brand-version');
+        if (versionEl) versionEl.textContent = `v${payload.version}`;
       }
     } catch (_) { /* noop */ }
   };
