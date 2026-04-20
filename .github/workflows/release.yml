@@ -1,9 +1,17 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Version bump"
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -15,55 +23,106 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify VERSION matches tag
+      - name: Configure git identity
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          FILE_VERSION="$(tr -d '[:space:]' < VERSION)"
-          if [[ "$TAG" != "$FILE_VERSION" ]]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match VERSION file ($FILE_VERSION)"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Compute next version
+        id: bump
+        run: |
+          CURRENT="$(tr -d '[:space:]' < VERSION)"
+          if [[ ! "$CURRENT" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "::error::VERSION '$CURRENT' is not strict semver (X.Y.Z)"
             exit 1
           fi
-          PY_VERSION="$(grep -E '^version\s*=' pyproject.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')"
-          if [[ "$PY_VERSION" != "$FILE_VERSION" ]]; then
-            echo "::error::pyproject.toml ($PY_VERSION) disagrees with VERSION ($FILE_VERSION)"
-            exit 1
-          fi
+          MAJOR="${BASH_REMATCH[1]}"
+          MINOR="${BASH_REMATCH[2]}"
+          PATCH="${BASH_REMATCH[3]}"
+          case "${{ inputs.bump_type }}" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+          NEXT="$MAJOR.$MINOR.$PATCH"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "next=$NEXT"       >> "$GITHUB_OUTPUT"
+          echo "tag=v$NEXT"       >> "$GITHUB_OUTPUT"
+          echo "Bumping $CURRENT -> $NEXT (${{ inputs.bump_type }})"
 
-      - name: Extract release notes from CHANGELOG.md
-        id: notes
+      - name: Extract ## [Unreleased] section
+        id: changelog
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
           NOTES_FILE="$(mktemp)"
-          awk -v ver="$VERSION" '
-            /^## / {
-              if (found) exit
-              if ($0 ~ "\\[" ver "\\]") { found = 1; next }
-            }
-            found { print }
-          ' CHANGELOG.md > "$NOTES_FILE" || true
-          if [[ -s "$NOTES_FILE" ]]; then
-            echo "notes_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
-            echo "has_notes=1"           >> "$GITHUB_OUTPUT"
-          else
-            echo "has_notes=0" >> "$GITHUB_OUTPUT"
+          awk '
+            /^## \[Unreleased\]/ { in_unreleased = 1; next }
+            /^## / && in_unreleased { exit }
+            in_unreleased { print }
+          ' CHANGELOG.md \
+            | awk 'NF { found = 1 } found' \
+            > "$NOTES_FILE"
+          if [[ ! -s "$NOTES_FILE" ]]; then
+            echo "::error::## [Unreleased] section is empty — add changelog entries before releasing"
+            exit 1
           fi
+          echo "notes_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
+          echo "--- release notes ---"
+          cat "$NOTES_FILE"
+          echo "---------------------"
 
-      - name: Create GitHub Release (with CHANGELOG notes)
-        if: steps.notes.outputs.has_notes == '1'
+      - name: Bump VERSION, pyproject.toml, CHANGELOG
+        env:
+          NEXT: ${{ steps.bump.outputs.next }}
+        run: |
+          export DATE="$(date -u +%Y-%m-%d)"
+          echo "$NEXT" > VERSION
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          next_version = os.environ["NEXT"]
+          date = os.environ["DATE"]
+
+          py = Path("pyproject.toml")
+          py.write_text(
+              re.sub(
+                  r'(?m)^version\s*=\s*"[^"]+"',
+                  f'version = "{next_version}"',
+                  py.read_text(),
+                  count=1,
+              )
+          )
+
+          changelog = Path("CHANGELOG.md")
+          text = changelog.read_text()
+          marker = "## [Unreleased]"
+          idx = text.find(marker)
+          if idx == -1:
+              raise SystemExit("## [Unreleased] not found in CHANGELOG.md")
+          end = idx + len(marker)
+          insertion = f"{marker}\n\n## [{next_version}] — {date}"
+          changelog.write_text(text[:idx] + insertion + text[end:])
+          PY
+
+      - name: Commit, tag, push
+        env:
+          TAG: ${{ steps.bump.outputs.tag }}
+        run: |
+          git add VERSION pyproject.toml CHANGELOG.md
+          git commit -m "Release $TAG"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin HEAD
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.bump.outputs.tag }}
+          NOTES_FILE: ${{ steps.changelog.outputs.notes_file }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            --title "$GITHUB_REF_NAME" \
-            --notes-file "${{ steps.notes.outputs.notes_file }}"
-
-      - name: Create GitHub Release (auto-generated notes fallback)
-        if: steps.notes.outputs.has_notes == '0'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "::warning::No '## [${GITHUB_REF_NAME#v}]' section in CHANGELOG.md — using auto-generated notes"
-          gh release create "$GITHUB_REF_NAME" \
-            --title "$GITHUB_REF_NAME" \
-            --generate-notes
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes-file "$NOTES_FILE"
