@@ -1,30 +1,57 @@
 # claude-grammar — CLAUDE.md
 
-Development repo for the grammar correction hook for Claude Code.
+Developer guide for the grammar correction hook. The user-facing overview
+(install, markers, daily use, troubleshooting) lives in @README.md.
 
-See @README.md for the user-facing overview: what this does, install flow,
-markers (`,,` and `^^^`), correctors, dashboard, and troubleshooting.
-
-This file is the **developer** companion — it covers the invariants and
-gotchas that aren't obvious from reading the code.
+This file captures the architecture, the invariants you must not regress,
+and the non-obvious gotchas that aren't visible from reading the code.
 
 ## Dev vs. installed
 
-This repo at `~/Repos/personal/claude-grammar/` is the source of truth.
-The *installed* location is `~/.claude/hooks/grammar/` — a subset of this
-tree copied there by `install.sh`, with runtime data (`data/`), `.env`,
-and `.venv/` living on that side only.
+The source of truth is this repo. The **installed** location is always
+`~/.claude/hooks/grammar/` — a subset of this tree copied there by
+`install.sh`, with runtime state (`data/`, `.env`, `.venv/`) living on
+that side only.
 
 Typical dev loop:
 
 ```bash
 # make changes here (this repo)
-bash install.sh                      # copy to ~/.claude/hooks/grammar/, install deps
+bash install.sh                                         # copy → ~/.claude/hooks/grammar/
 curl -X POST http://127.0.0.1:3333/api/server/restart   # reload dashboard
 ```
 
-Flask caches Jinja templates, so edits to `dashboard/templates/index.html`
+Flask caches Jinja templates, so edits to `dashboard/templates/*.html`
 need that restart — browser reload alone won't pick them up.
+
+## How it works (runtime flow)
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  User types prompt in Claude Code                              │
+│          │                                                     │
+│          ▼                                                     │
+│  UserPromptSubmit hook fires (async — does NOT block session)  │
+│          │                                                     │
+│          ▼                                                     │
+│  grammar_fix.py                                                │
+│    ├─ kill switch: env + settings.hook_enabled                 │
+│    ├─ parser.py:  strip code/logs after `,,` separator         │
+│    ├─ dedupe:     skip if same prompt within 60s (atomic)      │
+│    ├─ corrector:  groq | claude_cli | languagetool             │
+│    └─ storage:    INSERT into SQLite (prompts + corrections)   │
+│          │                                                     │
+│          ▼                                                     │
+│  Dashboard (localhost:3333)                                    │
+│    ├─ Bootstrap:  GET  /api/corrections                        │
+│    ├─ Livestream: GET  /api/corrections/stream (SSE)           │
+│    └─ Stats:      GET  /api/stats                              │
+└────────────────────────────────────────────────────────────────┘
+```
+
+The hook is registered with `async: true` so Claude Code never waits for
+it — corrections appear on the dashboard seconds later, the user never
+blocks.
 
 ## Layout
 
@@ -37,7 +64,7 @@ claude-grammar/
 ├── config.py            # INITIAL_DEFAULTS + .env loading
 ├── settings.py          # module-level constants read from DB at import
 ├── version.py + VERSION # installed version (single source of truth)
-├── updater.py           # remote manifest-based update check
+├── updater.py           # GitHub-Releases-backed update check
 ├── translator.py        # EN↔configurable-language translator
 ├── reports.py           # LLM-written summary reports
 ├── correctors/
@@ -47,11 +74,11 @@ claude-grammar/
 │   └── languagetool.py  # free, rule-based, no LLM
 ├── dashboard/
 │   ├── app.py           # Flask
-│   └── templates/*.html # UI (index.html is the big one ≈ 4k lines)
+│   └── templates/*.html # UI (index.html is ≈ 4k lines)
 ├── scripts/             # one-off dev tools (corrector comparison, etc.)
 ├── install.sh           # idempotent installer → ~/.claude/hooks/grammar/
-├── publish.sh           # builds zip + manifest.json for distribution
-└── upgrade.sh           # client-side upgrade runner (reads manifest_url)
+├── publish.sh           # legacy: builds zip + manifest.json
+└── upgrade.sh           # legacy: client-side upgrade runner
 ```
 
 ## Commands
@@ -76,7 +103,7 @@ sends user text to an LLM must:
 
 1. Wrap it in `<text_to_edit>…</text_to_edit>` (correctors) or
    `<text_to_translate>…</text_to_translate>` (translator).
-2. Append the hard-coded safety rail to the system prompt in code
+2. Append the hard-coded safety rail to the system prompt *in code*
    (e.g. `SAFETY_APPENDIX` in `correctors/groq.py`). This runs regardless
    of the user's customized `system_prompt` setting — don't move it into
    configurable text where the user could weaken it.
@@ -92,29 +119,170 @@ write a one-shot migration rather than editing the default in place.
 
 **Settings read timing.** `settings.py` pulls values from the DB at
 **import time** into module-level constants. A live settings edit is picked
-up only after a process restart. Exceptions that read fresh on every call:
-`translator._resolve_target_language()`. If you add a knob users should be
-able to flip at runtime, read it fresh — don't cache at import.
+up only after a process restart — *except* that the hook entry points
+(`grammar_fix.py`, `server_check.py`) are spawned fresh for every invocation,
+so they always see fresh settings. The long-running dashboard needs the
+restart. Exceptions that read fresh on every call even in the dashboard:
+`translator._resolve_target_language()`.
+
+If you add a knob users should be able to flip at runtime without a restart,
+read it fresh inside the dashboard — don't cache at import.
+
+**Kill switch precedence.** `grammar_fix.py` is the gatekeeper. It must
+check in this order: (1) `CLAUDE_GRAMMAR_DISABLED` env var truthy → skip,
+(2) `settings.hook_enabled` is False → skip, (3) `BYPASS_MARKER` at end of
+prompt → skip for this prompt only. Env always wins.
+
+**Dedupe atomicity.** `storage.insert_prompt_if_not_duplicate` uses
+`BEGIN IMMEDIATE` so the duplicate check + insert happen under one exclusive
+write lock. Claude Code occasionally fires `UserPromptSubmit` twice for the
+same prompt (session replays, retries) — the atomic guard is what prevents
+double rows. Don't refactor into check-then-insert; that race is real.
 
 **Paths.** Installed hook always lives at `~/.claude/hooks/grammar/`; data
 at `~/.claude/hooks/grammar/data/`. Claude Code invokes the hook entry
 points with absolute paths from `~/.claude/settings.json`. Don't refactor
 toward relative paths or a pip-installable layout.
 
+## Database schema
+
+```sql
+CREATE TABLE prompts (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp         TEXT NOT NULL,       -- ISO 8601 UTC
+    claude_session_id TEXT NOT NULL DEFAULT '',
+    cwd               TEXT NOT NULL DEFAULT '',
+    corrector         TEXT NOT NULL,       -- groq | claude_cli | languagetool
+    had_separator     INTEGER NOT NULL DEFAULT 0,
+    original_prompt   TEXT NOT NULL,
+    natural_text      TEXT NOT NULL,
+    corrected_text    TEXT NOT NULL
+);
+
+CREATE TABLE corrections (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    prompt_id   INTEGER NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
+    seq         INTEGER NOT NULL DEFAULT 0,
+    category    TEXT NOT NULL DEFAULT '',
+    rule        TEXT NOT NULL DEFAULT '',
+    original    TEXT NOT NULL DEFAULT '',
+    replacement TEXT NOT NULL DEFAULT '',
+    message     TEXT NOT NULL DEFAULT '',
+    offset_val  INTEGER,
+    length_val  INTEGER
+);
+
+CREATE TABLE settings (
+    key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
+);
+
+CREATE TABLE reports (...);        -- weekly summary reports
+CREATE TABLE translations (...);   -- cached EN↔target-lang lookups
+```
+
+PRAGMAs: `journal_mode=WAL`, `synchronous=NORMAL`, `foreign_keys=ON`.
+
+### Useful queries for debugging
+
+```sql
+-- Top categories of errors (what's the user actually struggling with)
+SELECT category, COUNT(*) AS c FROM corrections
+WHERE category != '' GROUP BY category ORDER BY c DESC;
+
+-- Repeated misspellings (for a future "N times" badge)
+SELECT lower(original), COUNT(*) AS c FROM corrections
+WHERE category = 'spelling' GROUP BY lower(original)
+HAVING c > 1 ORDER BY c DESC;
+
+-- Daily volume, last 30d
+SELECT substr(timestamp, 1, 10) AS day, COUNT(*) FROM prompts
+WHERE timestamp > date('now', '-30 days') GROUP BY day ORDER BY day;
+```
+
+## Configuration reference
+
+All settings live in the `settings` table, seeded from `INITIAL_DEFAULTS`
+in `config.py`. Users edit via the dashboard settings modal or by
+POSTing to `/api/settings`. Top-level keys:
+
+| Key | Type | Notes |
+|---|---|---|
+| `corrector` | enum | `claude_cli` \| `groq` \| `languagetool` |
+| `hook_enabled` | bool | Global kill switch, see invariants |
+| `min_natural_text_length` | int | Short prompts (e.g. "ok") skipped |
+| `separator` | str | Default `,,` — split natural text from data |
+| `bypass_marker` | str | Default `^^^` — per-prompt skip |
+| `dashboard` | `{host, port}` | Default 127.0.0.1:3333 |
+| `update` | `{github_repo, check_interval_hours, auto_check}` | GitHub Releases polling |
+| `ui` | `{theme, chat_format, dogs_enabled}` | Dashboard appearance |
+| `translation` | `{target_language}` | ISO code; English is always the other side |
+| `languagetool` | `{language}` | e.g. `en-US` |
+| `claude_cli` | `{model, timeout_seconds, system_prompt}` | `claude -p` |
+| `groq` | `{base_url, model, fallback_models[], …, system_prompt}` | Groq API |
+| `reports` | `{claude_model, claude_timeout_seconds, keep_latest}` | Weekly reports |
+
+`SETTINGS_WRITABLE_KEYS` in `dashboard/app.py` controls which top-level
+keys can be patched over the API. Secrets (`groq.api_key`) are masked in GET
+responses and only writable through the separate `/.env` flow.
+
+## Hooks registration (~/.claude/settings.json)
+
+`install.sh` appends these (idempotently — won't duplicate):
+
+```json
+{
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "startup|resume",
+      "hooks": [{ "type": "command",
+        "command": "uv run --project ~/.claude/hooks/grammar ~/.claude/hooks/grammar/server_check.py"
+      }]
+    }],
+    "UserPromptSubmit": [{
+      "matcher": "",
+      "hooks": [{ "type": "command", "async": true,
+        "command": "uv run --project ~/.claude/hooks/grammar ~/.claude/hooks/grammar/grammar_fix.py"
+      }]
+    }]
+  }
+}
+```
+
+The existing file is backed up once to `settings.json.pre-grammar-hook.bak`
+on first install.
+
+## Dashboard internals
+
+- **SSE stream** (`/api/corrections/stream`): polls SQLite every 500 ms for
+  new prompts/reports + fans out pending-hook pings. Heartbeats every 15 s
+  so the client can detect silent network stalls. Client reconnects on
+  `visibilitychange` (laptop wake).
+- **Window persistence**: `server_check.py` launches Chrome with
+  `--app=<dashboard-url>`. Chrome remembers size/position per-URL, so
+  restarts don't snap the window around. First launch uses 1056×321.
+- **Pulse light**: green = healthy, orange = reconnecting/stale,
+  red = dashboard down. Animation speed encodes recent work, not health.
+- **Dog pen**: a playful activity indicator fixed to the top-right.
+  Responds to correction volume (zoomies on bursts), session state
+  (sleeping when the SSE is down), and pending-hook pings (bark volleys).
+- **`pack.ensure(sessionId, cwd)` in `index.html` currently collapses all
+  sessions to a single dog (`SOLO_KEY`).** Multi-dog infra exists
+  (`MAX_DOGS=4`, `PACK_COLORS`, eviction, proximity greetings) but is gated
+  off. Enabling is ~5 lines — ask before flipping.
+
 ## Extending
 
-**Add a theme** — three places, all in `dashboard/templates/index.html`
-+ one in `dashboard/app.py`:
+**Add a theme** — three places:
 
-1. CSS block `body[data-theme="<name>"] { … }` — variable palette.
+1. `body[data-theme="<name>"] { … }` CSS block in `index.html` — palette.
 2. `THEME_DOT_COLORS` map in the JS — two-dot swatch colors.
 3. `THEME_OPTIONS` list in `dashboard/app.py`.
 
 **Add a translation language** — append one entry to
 `translator.SUPPORTED_TARGET_LANGUAGES`. Settings endpoint and dropdown
 pick it up automatically. Direction detection is the ASCII heuristic:
-perfect for non-Latin scripts, imperfect for Latin ones (documented in
-`translator.py`).
+perfect for non-Latin scripts, imperfect for Latin ones where some words
+are pure ASCII (e.g. Turkish "bir") — documented in `translator.py`.
 
 **Add a corrector** — subclass `correctors.base.BaseCorrector`, implement
 `.correct(text)` → `CorrectionResult`, register in `CORRECTOR_OPTIONS` in
@@ -123,32 +291,23 @@ injection-hardening pattern from `correctors/groq.py`.
 
 ## Releasing
 
-1. Bump `VERSION` (and `pyproject.toml version` to match).
+(Flow is being migrated to GitHub Releases as of 0.3.0. See
+`CHANGELOG.md` for what's current.)
+
+1. Bump `VERSION` (and `pyproject.toml` `version` to match).
 2. Add an entry to `CHANGELOG.md`.
-3. `bash publish.sh --download-url <where-youll-host-it>` — produces the
-   zip and `manifest.json`.
-4. Upload both to the host; point `update.manifest_url` at the manifest URL
-   (via the dashboard settings or by editing `data/corrections.db`).
-5. Teammates run `bash upgrade.sh`.
-
-## Git identity for this repo
-
-Local config only — global git identity is untouched:
-- `user.email` → personal noreply (`102423887+rotsen18@users.noreply.github.com`)
-- `user.name` → `Taras Nester`
-- `core.sshcommand` → pins pushes to `~/.ssh/github_personal`
-
-If you clone this repo fresh on another machine, re-apply these three
-`git config --local` settings. Don't commit machine-specific paths.
+3. Create a git tag `vX.Y.Z` and push.
+4. `gh release create vX.Y.Z --generate-notes` (or the `release.sh`
+   wrapper once it lands).
+5. Dashboards worldwide pick it up via `GET /api/update/check` within
+   `update.check_interval_hours`.
 
 ## Known rough edges
 
 - Pyright reports unresolved imports for `config`, `storage`, `settings`,
   `flask`, etc. — pyright can't see the uv-managed venv. Noise, not bugs.
-- `pack.ensure(sessionId, cwd)` in `index.html` currently collapses all
-  sessions to a single dog (`SOLO_KEY`). Multi-dog infra exists
-  (`MAX_DOGS=4`, `PACK_COLORS`, eviction, proximity greetings) but is
-  gated off. Enabling it is ~5 lines — ask before flipping.
 - The legacy Groq-quota endpoint (`/api/groq/quota`) and its JSON file on
   disk are still populated on every request but no UI consumes them.
   Intentionally kept for ad-hoc queries.
+- `publish.sh` + `upgrade.sh` + manifest.json flow is legacy — the GitHub
+  Releases-based update flow replaces them in 0.3.0.
