@@ -9,6 +9,22 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+## [0.3.3] — 2026-04-20
+
+### Changed
+- **Installer now honors `$CLAUDE_CONFIG_DIR`.** Previously the installer
+  hardcoded `~/.claude` for both the hook directory and the settings file,
+  so users with a relocated Claude config couldn't install. Resolution order
+  is now `$CLAUDE_CONFIG_DIR` → `$HOME/.claude`. If neither is writable and
+  stdin is a terminal, the installer prompts for an alternate path; if
+  stdin is piped, it bails with guidance to re-run with the env var set.
+- Hook commands written into `settings.json` now use absolute paths instead
+  of `~/.claude/...`, so they resolve correctly regardless of where the
+  config dir lives.
+- In-dashboard updates propagate the active config dir to the installer
+  subprocess, so updates land in the same location as the original install
+  even when the user's shell doesn't export `CLAUDE_CONFIG_DIR`.
+
 ## [0.3.2] — 2026-04-20
 
 ### Fixed
