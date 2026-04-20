@@ -4644,7 +4644,15 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
 
   seedBrandTitle();
   fetchStatus();
-  setInterval(() => fetchStatus(false), 6 * 60 * 60 * 1000);
+  // 15-minute poll strikes a balance: well under GitHub's 60 unauthenticated
+  // req/hour, but fast enough that a release shows up within minutes for any
+  // teammate who just left the dashboard tab open.
+  setInterval(() => fetchStatus(false), 15 * 60 * 1000);
+  // Force-check on tab refocus so "I just woke my laptop up" hits GitHub
+  // immediately instead of waiting for the next interval tick.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') fetchStatus(true);
+  });
 })();
 </script>
 </body>

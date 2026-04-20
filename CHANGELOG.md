@@ -9,6 +9,15 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-04-20
+
+### Changed
+- **Update latency cut to minutes.** Default `update.check_interval_hours`
+  dropped 24h → 1h. Frontend now polls every 15 min instead of every 6h,
+  and force-checks on tab refocus (`visibilitychange`) so "refocus the
+  dashboard" is enough to see a fresh release immediately. New releases
+  reach users' dashboards in minutes, not hours.
+
 ## [0.3.0] — 2026-04-20
 
 ### Added

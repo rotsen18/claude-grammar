@@ -52,7 +52,7 @@ INITIAL_DEFAULTS: dict = {
         # disables update checks entirely. Public repos are fetched
         # unauthenticated; private repos need a PAT in $GITHUB_TOKEN.
         "github_repo": "rotsen18/claude-grammar",
-        "check_interval_hours": 24,
+        "check_interval_hours": 1,
         "auto_check": True,
     },
     "ui": {
