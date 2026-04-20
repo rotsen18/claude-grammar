@@ -9,6 +9,13 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+### Changed
+- Internal: releases now cut via a `workflow_dispatch` GitHub Actions job
+  (Actions → Release → pick patch/minor/major). The workflow bumps
+  `VERSION` + `pyproject.toml`, promotes `## [Unreleased]` to a dated
+  version header, commits, tags, and publishes the release — no local
+  `gh auth` required.
+
 ## [0.3.3] — 2026-04-20
 
 ### Changed
