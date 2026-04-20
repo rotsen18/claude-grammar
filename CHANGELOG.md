@@ -9,6 +9,24 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-04-20
+
+### Fixed
+- **Dashboard now actually restarts after installing an update.** The exit
+  signal was being held up by the still-open SSE progress stream — werkzeug
+  waited on active request threads before releasing the port, so the next
+  `server_check` couldn't bind and bailed. Switched to a hard `os._exit(0)`
+  once the "restarting" event has been emitted. Graceful shutdown isn't
+  useful here; we're mid-restart by design.
+- **No more "two close buttons" in the update modal.** The footer cancel
+  button used to sit next to the header ✕ icon during install, reading as
+  two dismiss affordances. Rebuilt the modal footer as a proper state
+  machine: cancel is hidden during active install/restart, only ever the
+  primary button label changes (install → installing… → retry → reload
+  page), and cancel is the single "close" label whenever it's visible.
+- Timeout handling in the update modal now shows a clear "reload page"
+  action instead of a dead-end error message.
+
 ## [0.3.1] — 2026-04-20
 
 ### Changed

@@ -784,11 +784,14 @@ def api_server_restart() -> Response:
 
 
 def _schedule_exit(delay: float) -> None:
+    # Hard exit via os._exit. Using SIGTERM lets werkzeug wait for active
+    # request threads (notably the SSE progress stream during the update
+    # flow) before shutting down, which stretches to ~15s — long enough
+    # that server_check's 2s startup delay finds the socket still bound
+    # and refuses to launch a replacement. We've already emitted the
+    # "restarting" event; no graceful-shutdown work left to do.
     def _die() -> None:
-        try:
-            os.kill(os.getpid(), signal.SIGTERM)
-        except Exception:
-            os._exit(0)
+        os._exit(0)
 
     timer = threading.Timer(delay, _die)
     timer.daemon = True

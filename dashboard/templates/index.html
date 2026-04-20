@@ -4466,6 +4466,42 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
     detailEl.classList.remove('error');
   };
 
+  // A single source of truth for the footer buttons. Each named state sets
+  // the exact label + visibility + disabled combination we want — this is
+  // what prevents "two close buttons" from ever appearing on screen.
+  const setFooterState = (state) => {
+    switch (state) {
+      case 'ready':                    // freshly opened modal
+        installBtn.textContent = 'install';
+        installBtn.disabled = false;
+        cancelBtn.style.display = '';
+        cancelBtn.disabled = false;
+        break;
+      case 'installing':               // active install work, no exit
+        installBtn.textContent = 'installing…';
+        installBtn.disabled = true;
+        cancelBtn.style.display = 'none';
+        break;
+      case 'restarting':               // dashboard coming back — don't let user click away
+        installBtn.textContent = 'installing…';
+        installBtn.disabled = true;
+        cancelBtn.style.display = 'none';
+        break;
+      case 'error':                    // retry is the primary action, close dismisses
+        installBtn.textContent = 'retry';
+        installBtn.disabled = false;
+        cancelBtn.style.display = '';
+        cancelBtn.disabled = false;
+        break;
+      case 'already-latest':           // nothing to do — only "close" makes sense
+        installBtn.textContent = 'install';
+        installBtn.disabled = true;
+        cancelBtn.style.display = '';
+        cancelBtn.disabled = false;
+        break;
+    }
+  };
+
   const openModal = () => {
     if (!latestStatus || !latestStatus.update_available) return;
     curEl.textContent = latestStatus.current || '—';
@@ -4483,18 +4519,25 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
 
     notesEl.textContent = latestStatus.release_notes || '';
     resetProgress();
-    installBtn.disabled = false;
-    installBtn.textContent = 'install';
-    cancelBtn.textContent = 'close';
+    setFooterState('ready');
 
     scrim.classList.add('open');
     scrim.setAttribute('aria-hidden', 'false');
   };
 
+  const updateActive = () => (
+    currentEventSource !== null ||
+    progressEl.dataset.phase === 'restarting' ||
+    progressEl.dataset.phase === 'installing' ||
+    progressEl.dataset.phase === 'extracting' ||
+    progressEl.dataset.phase === 'downloading'
+  );
+
   const closeModal = () => {
     // Don't let the user dismiss mid-install — prevents them from dropping
-    // the SSE subscription and missing the final "restarting" signal.
-    if (currentEventSource) return;
+    // the SSE subscription and missing the final "restarting" signal, and
+    // prevents confusion if waitForRestart is polling in the background.
+    if (updateActive()) return;
     scrim.classList.remove('open');
     scrim.setAttribute('aria-hidden', 'true');
   };
@@ -4522,9 +4565,19 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
         }
       } catch (_) { /* still down, keep polling */ }
     }
-    detailEl.textContent = 'server took too long to come back — reload manually.';
+    // Timed out — dashboard didn't come back on its own. Surface a clear
+    // "reload page" button so the user has a single obvious action, in
+    // case the server is actually up and it was the version endpoint or
+    // network that hung.
+    phaseEl.textContent = 'update finished — please reload';
+    detailEl.textContent = 'dashboard took too long to respond. click reload once you have restarted it, or if you already have.';
     detailEl.classList.add('error');
     progressEl.dataset.phase = 'error';
+    progressEl.dataset.indeterminate = 'false';
+    installBtn.textContent = 'reload page';
+    installBtn.disabled = false;
+    cancelBtn.style.display = '';
+    cancelBtn.disabled = false;
   };
 
   const handleEvent = (event) => {
@@ -4552,24 +4605,19 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
       barFillEl.style.width = '100%';
       if (event.already_latest) {
         detailEl.textContent = `already on v${event.version}`;
-        installBtn.textContent = 'close';
-        installBtn.disabled = false;
+        setFooterState('already-latest');
       }
     } else if (phase === 'error') {
       progressEl.dataset.indeterminate = 'false';
       barFillEl.style.width = '100%';
       detailEl.textContent = event.message || 'update failed';
       detailEl.classList.add('error');
-      installBtn.textContent = 'retry';
-      installBtn.disabled = false;
-      cancelBtn.textContent = 'close';
+      setFooterState('error');
     }
   };
 
   const startInstall = async () => {
-    installBtn.disabled = true;
-    installBtn.textContent = 'installing…';
-    cancelBtn.disabled = true;
+    setFooterState('installing');
     detailEl.textContent = '';
     detailEl.classList.remove('error');
     progressEl.dataset.active = 'true';
@@ -4585,7 +4633,6 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
       taskId = payload.task_id;
     } catch (error) {
       handleEvent({ phase: 'error', message: error.message });
-      cancelBtn.disabled = false;
       return;
     }
 
@@ -4599,19 +4646,16 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
           restartSeen = true;
           currentEventSource.close();
           currentEventSource = null;
-          cancelBtn.disabled = false;
+          setFooterState('restarting');
           waitForRestart();
         } else if (event.phase === 'done' && !restartSeen) {
-          // "already latest" case — no restart happens. Let user close.
+          // "already latest" — no restart. handleEvent already called
+          // setFooterState('already-latest') for this branch.
           currentEventSource.close();
           currentEventSource = null;
-          cancelBtn.disabled = false;
-          installBtn.textContent = 'close';
-          installBtn.disabled = false;
         } else if (event.phase === 'error') {
           currentEventSource.close();
           currentEventSource = null;
-          cancelBtn.disabled = false;
         }
       } catch (error) {
         console.error('bad SSE payload', error, msg.data);
@@ -4619,14 +4663,13 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
     };
     currentEventSource.onerror = () => {
       // SSE closed unexpectedly. If we already saw restarting, that's
-      // actually normal — server exited. Otherwise, surface the failure.
+      // normal — server exited. Otherwise surface the failure.
       if (currentEventSource) {
         currentEventSource.close();
         currentEventSource = null;
       }
       if (!restartSeen) {
         handleEvent({ phase: 'error', message: 'connection to update stream lost' });
-        cancelBtn.disabled = false;
       }
     };
   };
@@ -4635,7 +4678,7 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
   closeBtn.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
   installBtn.addEventListener('click', () => {
-    if (installBtn.textContent === 'close') { closeModal(); return; }
+    if (installBtn.textContent === 'reload page') { window.location.reload(); return; }
     startInstall();
   });
   scrim.addEventListener('click', (event) => {
