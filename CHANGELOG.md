@@ -9,6 +9,8 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+## [0.3.5] — 2026-04-20
+
 ### Changed
 - Project layout: all library modules (`config`, `storage`, `settings`,
   `hook_log`, `parser`, `reports`, `translator`, `updater`, `version`)
