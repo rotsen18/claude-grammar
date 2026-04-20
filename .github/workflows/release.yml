@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify VERSION matches tag
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          FILE_VERSION="$(tr -d '[:space:]' < VERSION)"
+          if [[ "$TAG" != "$FILE_VERSION" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match VERSION file ($FILE_VERSION)"
+            exit 1
+          fi
+          PY_VERSION="$(grep -E '^version\s*=' pyproject.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')"
+          if [[ "$PY_VERSION" != "$FILE_VERSION" ]]; then
+            echo "::error::pyproject.toml ($PY_VERSION) disagrees with VERSION ($FILE_VERSION)"
+            exit 1
+          fi
+
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          NOTES_FILE="$(mktemp)"
+          awk -v ver="$VERSION" '
+            /^## / {
+              if (found) exit
+              if ($0 ~ "\\[" ver "\\]") { found = 1; next }
+            }
+            found { print }
+          ' CHANGELOG.md > "$NOTES_FILE" || true
+          if [[ -s "$NOTES_FILE" ]]; then
+            echo "notes_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
+            echo "has_notes=1"           >> "$GITHUB_OUTPUT"
+          else
+            echo "has_notes=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release (with CHANGELOG notes)
+        if: steps.notes.outputs.has_notes == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file "${{ steps.notes.outputs.notes_file }}"
+
+      - name: Create GitHub Release (auto-generated notes fallback)
+        if: steps.notes.outputs.has_notes == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "::warning::No '## [${GITHUB_REF_NAME#v}]' section in CHANGELOG.md — using auto-generated notes"
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes
