@@ -1,0 +1,4221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>grammar ·ᴸᴼᴳ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --dog-width: 72px;
+    --pen-width: calc(var(--dog-width) * 2);
+    --bg: #08090b;
+    --surface: #0e1013;
+    --surface-hi: #14171c;
+    --line: #1b1e25;
+    --line-soft: #141720;
+    --text: #e4e6ea;
+    --text-dim: #9397a0;
+    --text-fade: #54585f;
+    --text-mute: #373a42;
+
+    /* phosphor diff accents */
+    --del-fg: #ff5e6c;
+    --del-bg: rgba(255, 94, 108, 0.09);
+    --add-fg: #4eeb8e;
+    --add-bg: rgba(78, 235, 142, 0.085);
+    --arrow: #54585f;
+
+    /* category palette (kept distinct across the log) */
+    --cat-spelling:        #ffb454;
+    --cat-capitalization:  #ff9052;
+    --cat-punctuation:     #c792ea;
+    --cat-tense:           #ff4d7d;
+    --cat-agreement:       #ff7b9c;
+    --cat-article:         #7cd3ff;
+    --cat-word_choice:     #9bed58;
+    --cat-word_order:      #ffd166;
+    --cat-preposition:     #5dc8d6;
+    --cat-contraction:     #d896ff;
+    --cat-clarity:         #8b949e;
+    --cat-grammar:         #8b949e;
+  }
+
+  body[data-theme="amber"] {
+    --del-fg: #ff5470;
+    --del-bg: rgba(255, 84, 112, 0.09);
+    --add-fg: #ffb454;
+    --add-bg: rgba(255, 180, 84, 0.10);
+  }
+  body[data-theme="vapor"] {
+    --del-fg: #ff5fa2;
+    --del-bg: rgba(255, 95, 162, 0.09);
+    --add-fg: #6be8ff;
+    --add-bg: rgba(107, 232, 255, 0.09);
+  }
+  body[data-theme="mono"] {
+    --del-fg: #c9ccd4;
+    --del-bg: rgba(255, 255, 255, 0.05);
+    --add-fg: #f4f5f7;
+    --add-bg: rgba(255, 255, 255, 0.07);
+  }
+  body[data-theme="matrix"] {
+    --bg: #000000;
+    --surface: #020a03;
+    --line: #0f2912;
+    --line-soft: #051207;
+    --text: #9eff9e;
+    --text-dim: #5fd860;
+    --text-fade: #2f7a30;
+    --del-fg: #ff3333;
+    --del-bg: rgba(255, 51, 51, 0.12);
+    --add-fg: #00ff41;
+    --add-bg: rgba(0, 255, 65, 0.12);
+  }
+  body[data-theme="solarized"] {
+    --bg: #002b36;
+    --surface: #073642;
+    --surface-hi: #0e4955;
+    --line: #0f4c5c;
+    --line-soft: #083540;
+    --text: #eee8d5;
+    --text-dim: #93a1a1;
+    --text-fade: #657b83;
+    --del-fg: #dc322f;
+    --del-bg: rgba(220, 50, 47, 0.12);
+    --add-fg: #b58900;
+    --add-bg: rgba(181, 137, 0, 0.14);
+  }
+  body[data-theme="dracula"] {
+    --bg: #282a36;
+    --surface: #343746;
+    --surface-hi: #424555;
+    --line: #44475a;
+    --line-soft: #363848;
+    --text: #f8f8f2;
+    --text-dim: #c6c7d1;
+    --text-fade: #6272a4;
+    --del-fg: #ff5555;
+    --del-bg: rgba(255, 85, 85, 0.14);
+    --add-fg: #50fa7b;
+    --add-bg: rgba(80, 250, 123, 0.12);
+  }
+  body[data-theme="nord"] {
+    --bg: #2e3440;
+    --surface: #3b4252;
+    --surface-hi: #434c5e;
+    --line: #4c566a;
+    --line-soft: #3a4252;
+    --text: #eceff4;
+    --text-dim: #d8dee9;
+    --text-fade: #7b8396;
+    --del-fg: #bf616a;
+    --del-bg: rgba(191, 97, 106, 0.14);
+    --add-fg: #a3be8c;
+    --add-bg: rgba(163, 190, 140, 0.12);
+  }
+  body[data-theme="gruvbox"] {
+    --bg: #282828;
+    --surface: #32302f;
+    --surface-hi: #3c3836;
+    --line: #504945;
+    --line-soft: #3c3836;
+    --text: #ebdbb2;
+    --text-dim: #d5c4a1;
+    --text-fade: #928374;
+    --del-fg: #fb4934;
+    --del-bg: rgba(251, 73, 52, 0.13);
+    --add-fg: #b8bb26;
+    --add-bg: rgba(184, 187, 38, 0.12);
+  }
+  body[data-theme="synthwave"] {
+    --bg: #180028;
+    --surface: #260a3a;
+    --surface-hi: #321452;
+    --line: #4a2070;
+    --line-soft: #2a0d44;
+    --text: #f9e0ff;
+    --text-dim: #c79be8;
+    --text-fade: #7a5da0;
+    --del-fg: #ff4090;
+    --del-bg: rgba(255, 64, 144, 0.14);
+    --add-fg: #00e0ff;
+    --add-bg: rgba(0, 224, 255, 0.14);
+  }
+  body[data-theme="tokyo-night"] {
+    --bg: #1a1b26;
+    --surface: #24283b;
+    --surface-hi: #2f334d;
+    --line: #414868;
+    --line-soft: #1f2335;
+    --text: #c0caf5;
+    --text-dim: #a9b1d6;
+    --text-fade: #565f89;
+    --del-fg: #f7768e;
+    --del-bg: rgba(247, 118, 142, 0.13);
+    --add-fg: #9ece6a;
+    --add-bg: rgba(158, 206, 106, 0.12);
+  }
+  body[data-theme="catppuccin"] {
+    --bg: #1e1e2e;
+    --surface: #181825;
+    --surface-hi: #313244;
+    --line: #45475a;
+    --line-soft: #11111b;
+    --text: #cdd6f4;
+    --text-dim: #bac2de;
+    --text-fade: #6c7086;
+    --del-fg: #f38ba8;
+    --del-bg: rgba(243, 139, 168, 0.13);
+    --add-fg: #a6e3a1;
+    --add-bg: rgba(166, 227, 161, 0.12);
+  }
+  body[data-theme="github-dark"] {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface-hi: #21262d;
+    --line: #30363d;
+    --line-soft: #161b22;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --text-fade: #484f58;
+    --del-fg: #f85149;
+    --del-bg: rgba(248, 81, 73, 0.12);
+    --add-fg: #3fb950;
+    --add-bg: rgba(63, 185, 80, 0.12);
+  }
+  body[data-theme="monokai"] {
+    --bg: #272822;
+    --surface: #2d2e26;
+    --surface-hi: #3e3d32;
+    --line: #49483e;
+    --line-soft: #1e1f1c;
+    --text: #f8f8f2;
+    --text-dim: #cfcfc2;
+    --text-fade: #75715e;
+    --del-fg: #f92672;
+    --del-bg: rgba(249, 38, 114, 0.14);
+    --add-fg: #a6e22e;
+    --add-bg: rgba(166, 226, 46, 0.12);
+  }
+  body[data-theme="pink"] {
+    /* Near-black neutral background; pink lives in the accents only. */
+    --bg: #14101a;
+    --surface: #1c1724;
+    --surface-hi: #26202f;
+    --line: #342c3e;
+    --line-soft: #1a1524;
+    --text: #f2ecf5;
+    --text-dim: #c6bbd0;
+    --text-fade: #7d7389;
+    --text-mute: #3e3847;
+    --del-fg: #ff5e8a;
+    --del-bg: rgba(255, 94, 138, 0.11);
+    --add-fg: #ff9ed6;
+    --add-bg: rgba(255, 158, 214, 0.10);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-feature-settings: "ss02", "cv11";
+    font-variant-ligatures: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* subtle grid atmosphere — barely there */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0 / 100% 28px,
+      radial-gradient(ellipse at top, rgba(78, 235, 142, 0.025), transparent 60%);
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  /* ── HEADER ─────────────────────────────────────────── */
+  header {
+    position: sticky; top: 0;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    background: rgba(8, 9, 11, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    z-index: 10;
+  }
+  .brand {
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .brand::before {
+    content: "▚ ";
+    color: var(--add-fg);
+    font-weight: 400;
+    margin-right: 1px;
+  }
+  .update-pill {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 7px;
+    border: 1px solid var(--add-fg);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--add-fg) 10%, transparent);
+    color: var(--add-fg);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .update-pill[data-visible="true"] { display: inline-flex; }
+  .update-pill::before { content: "↑"; font-weight: 700; }
+  .update-pill:hover { background: color-mix(in srgb, var(--add-fg) 20%, transparent); }
+  /* livestream status light — theme-independent colours.
+     green = healthy · orange = transient fix · red = needs attention.
+     Animation speed on green encodes activity (not health):
+       working = fast (recent event), idle = slow (no work lately). */
+  .pulse {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    cursor: pointer;
+    background: #3ddc84;
+    box-shadow: 0 0 8px #3ddc84;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  .pulse[data-state="working"] {
+    background: #3ddc84;
+    box-shadow: 0 0 8px #3ddc84;
+    animation: pulse 0.8s ease-in-out infinite;
+  }
+  .pulse[data-state="idle"] {
+    background: #3ddc84;
+    box-shadow: 0 0 8px #3ddc84;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  .pulse[data-state="reconnecting"],
+  .pulse[data-state="stale"] {
+    background: #ff9500;
+    box-shadow: 0 0 8px #ff9500;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .pulse[data-state="down"] {
+    background: #ff3b30;
+    box-shadow: 0 0 8px #ff3b30;
+    animation: none;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+  }
+  .sep { color: var(--text-mute); }
+  .stats {
+    display: flex; gap: 12px;
+    margin-left: auto;
+    color: var(--text-dim);
+  }
+  .stat-num { color: var(--text); font-weight: 600; }
+  .stat-cat { color: var(--text); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-label { color: var(--text-fade); }
+  .stat-compact {
+    color: var(--text);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: help;
+  }
+  .stat-compact .sub {
+    color: var(--text-fade);
+    font-weight: 400;
+  }
+  .corrector-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--text-dim);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .corrector-pill {
+    max-width: 32ch;
+    overflow: hidden;
+  }
+  .corrector-pill .name { color: var(--text); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  .corrector-pill .model {
+    color: var(--text-fade);
+    font-family: var(--font-mono, monospace);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* ── TRANSLATE ──────────────────────────────────────── */
+  .translate-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .translate-input {
+    width: 180px;
+    height: 20px;
+    padding: 0 8px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    outline: none;
+    transition: border-color 0.15s, width 0.2s;
+  }
+  .translate-input::placeholder { color: var(--text-fade); }
+  .translate-input:focus { border-color: var(--add-fg); width: 220px; }
+  .translate-input[data-loading="true"] { border-color: var(--cat-spelling, #ffb454); }
+  .translate-lang {
+    color: var(--text-fade);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    min-width: 38px;
+    text-align: center;
+  }
+  .translate-lang[data-dir="en→uk"] { color: var(--cat-article, #7cd3ff); }
+  .translate-lang[data-dir="uk→en"] { color: var(--cat-tense, #ff4d7d); }
+  .translate-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 320px;
+    max-width: 460px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 10px 12px 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    color: var(--text);
+    font-size: 12px;
+    z-index: 20;
+    display: none;
+  }
+  .translate-panel[data-visible="true"] { display: block; }
+  .translate-panel .tr-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .translate-panel .tr-source {
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+  .translate-panel .tr-dir {
+    color: var(--text-fade);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .translate-panel .tr-main {
+    color: var(--add-fg);
+    font-size: 15px;
+    font-weight: 600;
+    margin: 4px 0 6px;
+    letter-spacing: 0.01em;
+  }
+  .translate-panel .tr-section {
+    margin-top: 8px;
+  }
+  .translate-panel .tr-section-label {
+    color: var(--text-fade);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 3px;
+  }
+  .translate-panel .tr-synonyms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+  }
+  .translate-panel .tr-synonym {
+    padding: 1px 7px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+  .translate-panel .tr-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .translate-panel .tr-example {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+  .translate-panel .tr-example .ex-source { color: var(--text-dim); }
+  .translate-panel .tr-example .ex-target { color: var(--text); }
+  .translate-panel .tr-notes {
+    color: var(--text-dim);
+    font-size: 11px;
+    font-style: italic;
+  }
+  .translate-panel .tr-meta {
+    margin-top: 10px;
+    padding-top: 6px;
+    border-top: 1px solid var(--line-soft);
+    color: var(--text-fade);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .translate-panel .tr-error {
+    color: var(--del-fg);
+    font-size: 11px;
+  }
+  .translate-panel .tr-empty {
+    color: var(--text-fade);
+    font-size: 11px;
+    font-style: italic;
+  }
+  .translate-panel .tr-recent-header {
+    color: var(--text-fade);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0 0 6px;
+  }
+  .translate-panel .tr-recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .translate-panel .tr-recent-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 5px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 12px;
+  }
+  .translate-panel .tr-recent-item:hover {
+    background: var(--surface-hi);
+  }
+  .translate-panel .tr-recent-item .rec-source {
+    color: var(--text-dim);
+    flex: 0 0 auto;
+  }
+  .translate-panel .tr-recent-item .rec-arrow {
+    color: var(--text-fade);
+    padding: 0 4px;
+  }
+  .translate-panel .tr-recent-item .rec-target {
+    color: var(--add-fg);
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .translate-panel .tr-recent-item .rec-dir {
+    color: var(--text-fade);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    flex: 0 0 auto;
+  }
+  .translate-panel .tr-hint {
+    color: var(--text-fade);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    padding: 6px 2px 2px;
+    text-align: right;
+  }
+  .translate-panel .tr-hint kbd {
+    display: inline-block;
+    padding: 0 4px;
+    margin: 0 2px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--text-dim);
+    font-size: 9px;
+  }
+
+  .icon-btn.has-badge { position: relative; }
+  .icon-btn .badge-dot {
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--del-fg);
+    box-shadow: 0 0 6px var(--del-fg);
+    display: none;
+  }
+  .icon-btn[data-has-errors="true"] .badge-dot { display: block; }
+
+  /* ── MAIN ───────────────────────────────────────────── */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+    min-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+  }
+  /* The dog pen is fixed at top-right so the bottom stays clear for the
+     newest card (the only one that really matters). Cards flow full-width
+     and the pen's gradient layers over the older scrolled-up cards. */
+  #list {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+  .empty {
+    color: var(--text-fade);
+    font-size: 12px;
+    padding: 24px 14px;
+    text-align: left;
+  }
+  .empty::before { content: "» "; color: var(--text-mute); }
+
+  /* ── CARD ───────────────────────────────────────────── */
+  .card {
+    position: relative;
+    padding: 8px 12px 10px;
+    border-bottom: 1px solid var(--line);
+    animation: slide 0.18s ease-out;
+  }
+  .card:nth-child(even) {
+    background: rgba(255, 255, 255, 0.015);
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--line);
+    transition: background 0.15s;
+  }
+  .card:hover {
+    background: var(--surface);
+  }
+  .card:hover::before {
+    background: var(--add-fg);
+  }
+  @keyframes slide {
+    from { opacity: 0; transform: translateY(-3px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* meta line */
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10.5px;
+    color: var(--text-fade);
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+    line-height: 1.3;
+  }
+  .meta .ts { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .meta .corr {
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 9.5px;
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+  }
+  .meta .count { color: var(--text-fade); }
+  .meta .count b { color: var(--text-dim); font-weight: 600; }
+
+  /* diff rows */
+  .row {
+    display: grid;
+    grid-template-columns: 14px 1fr;
+    align-items: start;
+    font-size: 12.5px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .row .g {
+    font-weight: 700;
+    user-select: none;
+    text-align: center;
+    padding-top: 1px;
+  }
+  .row.orig { background: linear-gradient(90deg, var(--del-bg), transparent 75%); }
+  .row.corr { background: linear-gradient(90deg, var(--add-bg), transparent 75%); }
+  .row.orig .g { color: var(--del-fg); }
+  .row.corr .g { color: var(--add-fg); }
+  .row.orig .body { color: #c7cad0; }
+  .row.corr .body { color: #e6ebe8; }
+
+  .removed { color: var(--del-fg); text-decoration: line-through; text-decoration-thickness: 1px; opacity: 0.78; }
+  .added   { color: var(--add-fg); font-weight: 500; }
+
+  /* hoverable diff chips — carry tooltip when the span represents a tracked correction */
+  .row.orig .removed[data-tip],
+  .row.corr .added[data-tip] {
+    display: inline;
+    position: relative;
+    cursor: help;
+  }
+  .row.corr .added[data-tip] {
+    border-bottom: 1px dotted var(--add-fg);
+    padding-bottom: 1px;
+  }
+  .row.orig .removed[data-tip]:hover { opacity: 1; background: var(--del-bg); }
+  .row.corr .added[data-tip]:hover { background: var(--add-bg); }
+
+  /* inline format — single line with per-word diff arrows */
+  .row.inline-line {
+    background: linear-gradient(90deg, var(--add-bg), transparent 82%);
+  }
+  .row.inline-line .g { color: var(--add-fg); }
+  .row.inline-line .body { color: #e6ebe8; }
+  .row.inline-line .arrow-pair {
+    display: inline;
+    position: relative;
+    white-space: nowrap;
+    border-bottom: 1px dotted var(--add-fg);
+    cursor: help;
+    padding-bottom: 1px;
+  }
+  .row.inline-line .arrow-pair:hover { background: var(--add-bg); }
+  .row.inline-line .arrow-pair .removed { margin-right: 2px; }
+  .row.inline-line .arrow-pair .a { color: var(--arrow); margin: 0 3px; }
+
+  /* annotated format — corrected line with hoverable changed words */
+  .row.annotated-line {
+    background: linear-gradient(90deg, var(--add-bg), transparent 75%);
+  }
+  .row.annotated-line .g { color: var(--add-fg); }
+  .row.annotated-line .body { color: #e6ebe8; }
+  .annotated-word {
+    color: var(--add-fg);
+    font-weight: 500;
+    border-bottom: 1px dotted var(--add-fg);
+    cursor: help;
+    padding-bottom: 1px;
+    position: relative;
+  }
+  .annotated-word:hover {
+    background: var(--add-bg);
+  }
+
+  /* Instant custom tooltip (bypasses native `title` 1.5–2.5s OS delay).
+     Applies to both .annotated-word and .arrow-pair — anywhere we show
+     per-correction hover context. `display: none` (not visibility/opacity)
+     keeps the hidden tooltip out of document flow so it can't push page
+     scrollbars. */
+  .annotated-word[data-tip]:hover::after,
+  .arrow-pair[data-tip]:hover::after,
+  .removed[data-tip]:hover::after,
+  .added[data-tip]:hover::after,
+  .annotated-word[data-tip]:focus-visible::after,
+  .arrow-pair[data-tip]:focus-visible::after,
+  .removed[data-tip]:focus-visible::after,
+  .added[data-tip]:focus-visible::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-hi, #14171c);
+    color: var(--text, #e4e6ea);
+    border: 1px solid var(--line, #1b1e25);
+    padding: 5px 9px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 400;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    letter-spacing: 0.01em;
+    white-space: pre-wrap;
+    max-width: 340px;
+    width: max-content;
+    z-index: 50;
+    pointer-events: none;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+
+  /* chat-format visibility rules
+     Each card renders every variant; the body[data-chat-format] rules hide
+     everything except the variant the user picked. */
+
+  /* full: plain diff rows + changes list */
+  body[data-chat-format="full"] .card .row.diff-annotated,
+  body[data-chat-format="full"] .card .row.inline-line,
+  body[data-chat-format="full"] .card .row.annotated-line { display: none; }
+
+  /* diff: plain diff rows only */
+  body[data-chat-format="diff"] .card .row.diff-annotated,
+  body[data-chat-format="diff"] .card .changes,
+  body[data-chat-format="diff"] .card .row.inline-line,
+  body[data-chat-format="diff"] .card .row.annotated-line { display: none; }
+
+  /* diff-annotated: phrase-annotated diff rows only */
+  body[data-chat-format="diff-annotated"] .card .row.diff-plain,
+  body[data-chat-format="diff-annotated"] .card .changes,
+  body[data-chat-format="diff-annotated"] .card .row.inline-line,
+  body[data-chat-format="diff-annotated"] .card .row.annotated-line { display: none; }
+
+  /* corrected: only the plain corr row */
+  body[data-chat-format="corrected"] .card .row.orig,
+  body[data-chat-format="corrected"] .card .row.diff-annotated,
+  body[data-chat-format="corrected"] .card .changes,
+  body[data-chat-format="corrected"] .card .row.inline-line,
+  body[data-chat-format="corrected"] .card .row.annotated-line { display: none; }
+
+  body[data-chat-format="inline"] .card .row.orig,
+  body[data-chat-format="inline"] .card .row.corr,
+  body[data-chat-format="inline"] .card .changes,
+  body[data-chat-format="inline"] .card .row.annotated-line { display: none; }
+
+  body[data-chat-format="annotated"] .card .row.orig,
+  body[data-chat-format="annotated"] .card .row.corr,
+  body[data-chat-format="annotated"] .card .changes,
+  body[data-chat-format="annotated"] .card .row.inline-line { display: none; }
+
+  /* changes list */
+  .changes {
+    margin-top: 6px;
+    padding-left: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .change {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 1px 10px;
+    align-items: baseline;
+    padding: 3px 0;
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+  .cat {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-align: left;
+    text-transform: uppercase;
+    color: var(--cat);
+  }
+  .pair {
+    grid-column: 2;
+    color: var(--text-dim);
+    font-variant-ligatures: none;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+  .pair .del { color: var(--del-fg); opacity: 0.85; }
+  .pair .ar  { color: var(--arrow); margin: 0 5px; }
+  .pair .add { color: var(--add-fg); font-weight: 500; }
+  .exp {
+    grid-column: 2;
+    color: var(--text-fade);
+    font-style: italic;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+  }
+
+  /* ── SCROLL-TO-BOTTOM FAB ───────────────────────────── */
+  .scroll-bottom {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface-hi);
+    border: 1px solid var(--add-fg);
+    color: var(--add-fg);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(78, 235, 142, 0.15);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .scroll-bottom.visible { display: flex; }
+  .scroll-bottom:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(78, 235, 142, 0.35); }
+  .scroll-bottom svg { width: 14px; height: 14px; }
+  .scroll-bottom .badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: var(--add-fg);
+    color: var(--bg);
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scroll-bottom .badge:empty { display: none; }
+
+  /* ── FOOTER DOG ─────────────────────────────────────── */
+  .tail {
+    position: fixed;
+    right: 0;
+    top: 32px;
+    width: var(--pen-width);
+    height: 110px;
+    padding: 8px 12px 10px;
+    font-size: 10.5px;
+    color: var(--text-mute);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+    gap: 4px;
+    /* Soft spotlight that follows the primary dog instead of a hard
+       rectangle. --dog-x is updated from the animation loop. */
+    background: radial-gradient(
+      ellipse 85px 48px at var(--dog-x, 72px) 68%,
+      color-mix(in srgb, var(--bg) 78%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 30%, transparent) 55%,
+      transparent 82%
+    );
+    transition: background-position 0.3s ease;
+    pointer-events: none;
+    z-index: 20;
+  }
+  .tail > * { pointer-events: auto; }
+  body[data-dogs-enabled="false"] .tail { display: none; }
+
+  .toggle-field .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle-field .toggle-row input[type="checkbox"] {
+    appearance: none;
+    width: 32px;
+    height: 18px;
+    background: var(--surface-hi);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    margin: 0;
+    flex: none;
+  }
+  .toggle-field .toggle-row input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    transition: transform 0.15s, background 0.15s;
+  }
+  .toggle-field .toggle-row input[type="checkbox"]:checked {
+    background: var(--add-bg);
+    border-color: var(--add-fg);
+  }
+  .toggle-field .toggle-row input[type="checkbox"]:checked::after {
+    transform: translateX(14px);
+    background: var(--add-fg);
+  }
+  .mood-label {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-fade);
+    font-size: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .dog-lane {
+    position: relative;
+    flex: 1;
+    height: 72px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .dog-pos {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 72px;
+    height: 48px;
+    will-change: transform;
+    pointer-events: auto;
+  }
+  .dust-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .dust-puff {
+    position: absolute;
+    bottom: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-mute);
+    opacity: 0.5;
+    animation: dust-fade 0.5s ease-out forwards;
+  }
+  .speech-bubble {
+    position: absolute;
+    top: -4px;
+    pointer-events: none;
+    color: var(--add-fg);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+    opacity: 0;
+    transform: translateY(4px);
+    white-space: nowrap;
+  }
+  .speech-bubble.show {
+    animation: bubble-pop 0.8s ease-out forwards;
+  }
+  .moon-icon {
+    position: absolute;
+    top: 2px;
+    right: 10px;
+    color: var(--del-fg);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .moon-icon.show {
+    animation: moon-appear 3s ease-in-out forwards;
+  }
+
+  .dog {
+    --dog-color: var(--text-dim);
+    color: var(--dog-color);
+    transition: color 0.4s ease;
+    width: 72px;
+    height: 48px;
+    overflow: visible;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  .dog[data-facing="left"] {
+    transform: scaleX(-1);
+  }
+  .dog-pos {
+    transition: opacity 0.5s ease;
+  }
+  .dog-pos.spawning {
+    opacity: 0;
+  }
+  .dog-pos.leaving {
+    opacity: 0;
+  }
+  .dog[data-primary="true"] .body-group > ellipse,
+  .dog[data-primary="true"] .head-group > circle {
+    outline: none;
+  }
+  .dog[data-primary="true"] {
+    filter: drop-shadow(0 0 3px var(--dog-color));
+  }
+  .dog * { transform-box: fill-box; }
+  .dog .tail-line { transform-origin: right center; }
+  .dog .ear { transform-origin: bottom left; transition: transform 0.35s ease; }
+  .dog .head-group { transform-origin: 50px 30px; transition: transform 0.35s ease; }
+  .dog .eye { transform-origin: center; transition: transform 0.3s ease; }
+  .dog .zzz { opacity: 0; transition: opacity 0.4s ease; }
+  .dog .body-group { transform-origin: center; }
+  .dog .leg-pair-a, .dog .leg-pair-b { transform-origin: center top; transform-box: fill-box; }
+  .dog .sound-wave { opacity: 0; transform-origin: 62px 27px; }
+  .dog .nose-pulse { transform-origin: center; transform-box: fill-box; }
+  .dog .qmark { opacity: 0; }
+
+  /* ── BASELINE: SITTING ─────────────────────────────── */
+  .dog[data-baseline="sitting"] .tail-line {
+    animation: wag-slow 2.4s ease-in-out infinite;
+  }
+
+  /* ── BASELINE: WALKING ─────────────────────────────── */
+  .dog[data-baseline="walking"] .tail-line {
+    animation: wag-slow 1.2s ease-in-out infinite;
+  }
+  .dog[data-baseline="walking"] .leg-pair-a {
+    animation: leg-swing-a 0.6s ease-in-out infinite;
+  }
+  .dog[data-baseline="walking"] .leg-pair-b {
+    animation: leg-swing-b 0.6s ease-in-out infinite;
+  }
+  .dog[data-baseline="walking"] .head-group {
+    animation: head-bob 0.6s ease-in-out infinite;
+  }
+
+  /* ── BASELINE: SNIFFING ────────────────────────────── */
+  .dog[data-baseline="sniffing"] .leg-pair-a {
+    animation: leg-swing-a 1.1s ease-in-out infinite;
+  }
+  .dog[data-baseline="sniffing"] .leg-pair-b {
+    animation: leg-swing-b 1.1s ease-in-out infinite;
+  }
+  .dog[data-baseline="sniffing"] .head-group {
+    transform: rotate(12deg) translateY(2px);
+  }
+  .dog[data-baseline="sniffing"] .tail-line {
+    transform: rotate(-30deg);
+    animation: wag-slow 2s ease-in-out infinite;
+  }
+  .dog[data-baseline="sniffing"] .nose-pulse {
+    animation: nose-sniff 1.4s ease-in-out infinite;
+  }
+
+  /* ── BASELINE: ZOOMIES-RUN ─────────────────────────── */
+  .dog[data-baseline="zoomies-run"] {
+    color: var(--add-fg);
+  }
+  .dog[data-baseline="zoomies-run"] .leg-pair-a {
+    animation: leg-blur-a 0.18s linear infinite;
+  }
+  .dog[data-baseline="zoomies-run"] .leg-pair-b {
+    animation: leg-blur-b 0.18s linear infinite;
+  }
+  .dog[data-baseline="zoomies-run"] .tail-line {
+    animation: wag-fast 0.22s ease-in-out infinite;
+  }
+  .dog[data-baseline="zoomies-run"] .body-group {
+    animation: run-bounce 0.32s ease-in-out infinite;
+  }
+
+  /* ── BASELINE: NAPPING ─────────────────────────────── */
+  .dog[data-baseline="napping"] .body-group {
+    animation: breathe-napping 3.6s ease-in-out infinite;
+    transform: translateY(4px);
+  }
+  .dog[data-baseline="napping"] .ear {
+    animation: ear-flick 5s ease-in-out infinite;
+  }
+  .dog[data-baseline="napping"] .eye {
+    animation: eye-peek 4.8s ease-in-out infinite;
+  }
+
+  /* ── BASELINE: SLEEPING ────────────────────────────── */
+  .dog[data-baseline="sleeping"] .eye {
+    transform: scaleY(0.08);
+  }
+  .dog[data-baseline="sleeping"] .ear {
+    transform: rotate(14deg);
+  }
+  .dog[data-baseline="sleeping"] .body-group {
+    animation: breathe-deep 4.4s ease-in-out infinite;
+    transform: translateY(6px);
+  }
+  .dog[data-baseline="sleeping"] .zzz {
+    opacity: 1;
+    animation: zzz-float 2.4s ease-in-out infinite;
+  }
+  .dog[data-baseline="sleeping"] .tail-line {
+    animation: tail-twitch 6s ease-in-out infinite;
+  }
+
+  /* ── TRANSIENTS (override baselines visually) ──────── */
+  .dog[data-transient="jumping"] .body-group {
+    animation: jump-once 0.5s ease-in-out;
+  }
+  .dog[data-transient="barking"] {
+    color: var(--add-fg);
+  }
+  .dog[data-transient="barking"] .mouth-closed { opacity: 0; }
+  .dog[data-transient="barking"] .mouth-open { opacity: 1; }
+  .dog[data-transient="barking"] .sound-wave {
+    animation: sound-wave 0.8s ease-out infinite;
+  }
+  .dog[data-transient="barking"] .sound-wave:nth-child(2) { animation-delay: 0.1s; }
+  .dog[data-transient="barking"] .sound-wave:nth-child(3) { animation-delay: 0.2s; }
+
+  .dog[data-transient="spinning"] .body-group {
+    animation: spin-once 0.6s linear;
+  }
+
+  .dog[data-transient="howling"] {
+    color: var(--del-fg);
+  }
+  .dog[data-transient="howling"] .head-group {
+    transform: rotate(-25deg);
+    animation: howl 1.2s ease-in-out infinite;
+  }
+  .dog[data-transient="howling"] .mouth-closed { opacity: 0; }
+  .dog[data-transient="howling"] .mouth-open { opacity: 1; }
+  .dog[data-transient="howling"] .sound-wave {
+    animation: sound-wave 1.2s ease-out infinite;
+  }
+
+  .dog[data-transient="alert"] {
+    color: var(--cat-spelling);
+  }
+  .dog[data-transient="alert"] .ear {
+    transform: rotate(20deg);
+  }
+  .dog[data-transient="alert"] .body-group {
+    transform: translateY(-2px);
+  }
+  .dog[data-transient="alert"] .qmark {
+    opacity: 1;
+    animation: qmark-pop 1.2s ease-out;
+  }
+
+  /* WAITING — hook fired, corrector in flight. Ears up, head gently tilting
+     side-to-side, slow anticipatory tail wag. Muted green tint. */
+  .dog[data-transient="waiting"] {
+    color: var(--add-fg);
+    opacity: 0.85;
+  }
+  .dog[data-transient="waiting"] .ear {
+    transform: rotate(-12deg) translateY(-1px);
+  }
+  .dog[data-transient="waiting"] .head-group {
+    animation: waiting-tilt 2.4s ease-in-out infinite;
+  }
+  .dog[data-transient="waiting"] .tail-line {
+    animation: wag-slow 1.3s ease-in-out infinite;
+  }
+
+  @keyframes waiting-tilt {
+    0%, 100% { transform: rotate(-6deg); }
+    50%      { transform: rotate(6deg); }
+  }
+
+  .dog[data-transient="beg"] .body-group {
+    animation: beg-pose 1.5s ease-in-out;
+    transform-origin: 30px 44px;
+  }
+
+  .dog[data-transient="stretch"] .body-group {
+    animation: stretch-pose 1.2s ease-in-out;
+  }
+  .dog[data-transient="stretch"] .mouth-closed { opacity: 0; }
+  .dog[data-transient="stretch"] .mouth-open { opacity: 1; }
+
+  .dog[data-transient="shake"] .body-group {
+    animation: shake-pose 0.6s ease-in-out;
+  }
+
+  /* mouth swap — open state hidden by default */
+  .dog .mouth-open { opacity: 0; transition: opacity 0.1s; }
+  .dog .mouth-closed { opacity: 1; transition: opacity 0.1s; }
+
+  @keyframes wag-slow {
+    0%, 100% { transform: rotate(-12deg); }
+    50%      { transform: rotate(14deg); }
+  }
+  @keyframes wag-fast {
+    0%, 100% { transform: rotate(-28deg); }
+    50%      { transform: rotate(30deg); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-5px); }
+  }
+  @keyframes run-bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+  }
+  @keyframes breathe-napping {
+    0%, 100% { transform: translateY(4px) scaleY(1); }
+    50%      { transform: translateY(2px) scaleY(1.08); }
+  }
+  @keyframes breathe-deep {
+    0%, 100% { transform: translateY(6px) scaleY(1); }
+    50%      { transform: translateY(3px) scaleY(1.12); }
+  }
+  @keyframes ear-flick {
+    0%, 70%, 100% { transform: rotate(8deg); }
+    75%           { transform: rotate(-6deg); }
+    80%           { transform: rotate(10deg); }
+    85%           { transform: rotate(4deg); }
+  }
+  @keyframes eye-peek {
+    0%, 85%, 100% { transform: scaleY(0.3); }
+    90%           { transform: scaleY(0.9); }
+    95%           { transform: scaleY(0.4); }
+  }
+  @keyframes tail-twitch {
+    0%, 88%, 100% { transform: rotate(0deg); }
+    92%           { transform: rotate(-14deg); }
+    96%           { transform: rotate(6deg); }
+  }
+  @keyframes zzz-float {
+    0%   { opacity: 0; transform: translate(0, 6px); }
+    40%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(6px, -6px); }
+  }
+  @keyframes howl {
+    0%, 100% { transform: rotate(-25deg); }
+    50%      { transform: rotate(-32deg); }
+  }
+
+  /* new anims */
+  @keyframes leg-swing-a {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-2px) rotate(15deg); }
+  }
+  @keyframes leg-swing-b {
+    0%, 100% { transform: translateY(-2px) rotate(15deg); }
+    50%      { transform: translateY(0) rotate(0deg); }
+  }
+  @keyframes leg-blur-a {
+    0%, 100% { opacity: 1; transform: translateY(0); }
+    50%      { opacity: 0.4; transform: translateY(-3px); }
+  }
+  @keyframes leg-blur-b {
+    0%, 100% { opacity: 0.4; transform: translateY(-3px); }
+    50%      { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes head-bob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-1.5px); }
+  }
+  @keyframes nose-sniff {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.8); opacity: 0.6; }
+  }
+  @keyframes jump-once {
+    0%, 100% { transform: translateY(0); }
+    40%      { transform: translateY(-10px); }
+  }
+  @keyframes spin-once {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  @keyframes sound-wave {
+    0%   { opacity: 0.6; transform: scale(0); }
+    100% { opacity: 0; transform: scale(2.4); }
+  }
+  @keyframes qmark-pop {
+    0%   { opacity: 0; transform: translateY(2px) scale(0.7); }
+    30%  { opacity: 1; transform: translateY(-2px) scale(1.1); }
+    100% { opacity: 0; transform: translateY(-4px) scale(1); }
+  }
+  @keyframes beg-pose {
+    0%, 100% { transform: rotate(0deg) translateY(0); }
+    40%, 70% { transform: rotate(-28deg) translateY(-2px); }
+  }
+  @keyframes stretch-pose {
+    0%, 100% { transform: scaleX(1); }
+    40%, 70% { transform: scaleX(1.12) translateY(1px); }
+  }
+  @keyframes shake-pose {
+    0%, 100%   { transform: rotate(0deg); }
+    20%, 60%   { transform: rotate(8deg); }
+    40%, 80%   { transform: rotate(-8deg); }
+  }
+  @keyframes dust-fade {
+    0%   { transform: scale(0.3); opacity: 0.6; }
+    100% { transform: scale(1.6) translateY(-2px); opacity: 0; }
+  }
+  @keyframes bubble-pop {
+    0%   { opacity: 0; transform: translateY(4px) scale(0.8); }
+    30%  { opacity: 1; transform: translateY(-2px) scale(1.05); }
+    100% { opacity: 0; transform: translateY(-10px) scale(1); }
+  }
+  @keyframes moon-appear {
+    0%   { opacity: 0; transform: translateY(4px); }
+    20%  { opacity: 0.9; transform: translateY(0); }
+    80%  { opacity: 0.9; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-4px); }
+  }
+
+  @keyframes wag-slow {
+    0%, 100% { transform: rotate(-12deg); }
+    50%      { transform: rotate(14deg); }
+  }
+  @keyframes wag-fast {
+    0%, 100% { transform: rotate(-28deg); }
+    50%      { transform: rotate(30deg); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-5px); }
+  }
+  @keyframes breathe-napping {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    50%      { transform: translateY(-2px) scaleY(1.08); }
+  }
+  @keyframes breathe-deep {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    50%      { transform: translateY(-3px) scaleY(1.12); }
+  }
+  @keyframes ear-flick {
+    0%, 70%, 100% { transform: rotate(8deg); }
+    75%           { transform: rotate(-6deg); }
+    80%           { transform: rotate(10deg); }
+    85%           { transform: rotate(4deg); }
+  }
+  @keyframes eye-peek {
+    0%, 85%, 100% { transform: scaleY(0.3); }
+    90%           { transform: scaleY(0.9); }
+    95%           { transform: scaleY(0.4); }
+  }
+  @keyframes tail-twitch {
+    0%, 88%, 100% { transform: rotate(0deg); }
+    92%           { transform: rotate(-14deg); }
+    96%           { transform: rotate(6deg); }
+  }
+  @keyframes zzz-float {
+    0%   { opacity: 0; transform: translate(0, 6px); }
+    40%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(6px, -6px); }
+  }
+  @keyframes howl {
+    0%, 100% { transform: rotate(-22deg); }
+    50%      { transform: rotate(-30deg); }
+  }
+
+  /* ── HEADER BUTTONS (cog + info) ────────────────────── */
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    width: 22px; height: 22px;
+    padding: 0;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, transform 0.4s;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .icon-btn:hover { color: var(--add-fg); border-color: var(--add-fg); }
+  .icon-btn.danger:hover { color: var(--del-fg); border-color: var(--del-fg); }
+  .icon-btn[disabled] { opacity: 0.5; cursor: wait; }
+  .icon-btn svg { width: 12px; height: 12px; }
+  .cog:hover { transform: rotate(60deg); }
+
+  /* ── MODAL ──────────────────────────────────────────── */
+  .scrim {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 14px 40px;
+    z-index: 100;
+    animation: fade 0.15s ease-out;
+  }
+  .scrim.open { display: flex; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(78, 235, 142, 0.04);
+    animation: modalIn 0.2s ease-out;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal header {
+    position: sticky; top: 0;
+    height: 34px;
+    background: var(--surface-hi);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .modal header .x {
+    margin-left: auto;
+    background: transparent;
+    border: 0;
+    color: var(--text-fade);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+  }
+  .modal header .x:hover { color: var(--del-fg); }
+
+  .modal-body {
+    padding: 14px 16px 18px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+  .field-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-fade);
+    font-weight: 600;
+  }
+  .field-hint {
+    font-size: 10.5px;
+    color: var(--text-fade);
+    font-style: italic;
+    margin-top: 2px;
+  }
+
+  .segments {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .segments button {
+    flex: 1;
+    background: transparent;
+    color: var(--text-dim);
+    border: 0;
+    border-right: 1px solid var(--line);
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .segments button:last-child { border-right: 0; }
+  .segments button:hover { background: var(--surface-hi); color: var(--text); }
+  .segments button.active { background: var(--add-bg); color: var(--add-fg); }
+
+  input.text, select.text {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 6px 9px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+    width: 100%;
+  }
+  input.text:focus, select.text:focus { border-color: var(--add-fg); }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .key-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 9px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .key-status.ok { border-color: rgba(78, 235, 142, 0.35); color: var(--add-fg); }
+  .key-status.missing { border-color: rgba(255, 94, 108, 0.35); color: var(--del-fg); }
+  .key-status b { font-weight: 600; }
+
+  .theme-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+  .theme-swatches button {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 5px 10px;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .theme-swatches button:hover { color: var(--text); }
+  .theme-swatches button.active { border-color: var(--add-fg); color: var(--add-fg); }
+  .swatch-dots {
+    display: inline-flex; gap: 2px;
+  }
+  .swatch-dots span {
+    width: 7px; height: 7px; border-radius: 50%;
+    display: inline-block;
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+    background: var(--surface-hi);
+    position: sticky; bottom: 0;
+  }
+  .btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    padding: 5px 14px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .btn.primary {
+    background: var(--add-bg);
+    border-color: var(--add-fg);
+    color: var(--add-fg);
+  }
+  .btn.primary:hover { background: rgba(78, 235, 142, 0.15); }
+  .toast {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-hi);
+    border: 1px solid var(--add-fg);
+    color: var(--add-fg);
+    padding: 7px 14px;
+    font-size: 11px;
+    border-radius: 4px;
+    z-index: 200;
+    animation: toastIn 0.2s ease-out;
+  }
+  .toast.error { border-color: var(--del-fg); color: var(--del-fg); }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, 6px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  /* Corrector-specific field sections — toggled via data-corrector on body.
+     When a given corrector is active we hide the `.only-<other>` blocks. */
+  .modal-body[data-corrector="groq"] .only-claude,
+  .modal-body[data-corrector="groq"] .only-languagetool,
+  .modal-body[data-corrector="claude_cli"] .only-groq,
+  .modal-body[data-corrector="claude_cli"] .only-languagetool,
+  .modal-body[data-corrector="languagetool"] .only-groq,
+  .modal-body[data-corrector="languagetool"] .only-claude {
+    display: none;
+  }
+
+  .section-title {
+    display: block;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-mute);
+    font-weight: 700;
+    padding-bottom: 4px;
+    margin: 14px 0 10px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  .modal-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--line);
+    margin: -12px -12px 12px;
+    padding: 0 12px;
+  }
+  .modal-tab {
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: var(--text-fade);
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    margin-bottom: -1px;
+  }
+  .modal-tab:hover { color: var(--text-dim); }
+  .modal-tab.active {
+    color: var(--add-fg);
+    border-bottom-color: var(--add-fg);
+  }
+  .modal-tab-panel { display: none; }
+  .modal-tab-panel.active { display: block; }
+
+  /* Info modal */
+  .info-body h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--add-fg);
+    margin: 14px 0 6px;
+    font-weight: 700;
+  }
+  .info-body h3:first-child { margin-top: 0; }
+  .info-body p {
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-dim);
+    margin: 0 0 8px;
+  }
+  .info-body p.lead { color: var(--text); }
+  .info-body .corrector-card {
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--cat-word_choice);
+    border-radius: 3px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: var(--bg);
+  }
+  .info-body .corrector-card.groq        { border-left-color: #ffb454; }
+  .info-body .corrector-card.claude_cli  { border-left-color: var(--add-fg); }
+  .info-body .corrector-card.languagetool { border-left-color: #7cd3ff; }
+  .info-body .corrector-card b {
+    color: var(--text);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: block;
+    margin-bottom: 3px;
+  }
+  .info-body .corrector-card span {
+    display: block;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .info-body a {
+    color: var(--add-fg);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--add-fg);
+  }
+  .info-body a:hover { color: var(--text); border-bottom-color: var(--text); }
+  .info-body code {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0 4px;
+    font-size: 11px;
+    color: var(--add-fg);
+  }
+  .info-body .db-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px 16px;
+    margin: 6px 0 10px;
+    font-size: 11.5px;
+  }
+  .info-body .db-stat { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted var(--line); }
+  .info-body .db-stat .k { color: var(--text-fade); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; }
+  .info-body .db-stat .v { color: var(--text); font-weight: 500; }
+  .info-body .cleanup-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 8px; padding: 8px 10px;
+    border: 1px solid var(--line); border-radius: 4px;
+    background: var(--bg);
+  }
+  .info-body .cleanup-row .cleanup-label { color: var(--text-fade); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .info-body .cleanup-row .segments {
+    display: flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden;
+  }
+  .info-body .cleanup-row .segments button {
+    background: transparent; color: var(--text-dim); border: 0;
+    border-right: 1px solid var(--line);
+    padding: 5px 12px; font-family: inherit; font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer;
+  }
+  .info-body .cleanup-row .segments button:last-child { border-right: 0; }
+  .info-body .cleanup-row .segments button:hover { background: var(--surface); color: var(--del-fg); }
+  .info-body .cleanup-row .segments button[disabled] { opacity: 0.5; cursor: wait; }
+
+  .info-body .marker-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 8px;
+    font-size: 11.5px;
+    padding: 3px 0;
+    color: var(--text-dim);
+    align-items: baseline;
+  }
+  .info-body .marker-row code {
+    text-align: center;
+  }
+
+  .server-controls { display: flex; gap: 8px; }
+  .server-btn { flex: 1; }
+  .server-btn.shutdown {
+    color: var(--del-fg);
+    border-color: rgba(255, 94, 108, 0.35);
+  }
+  .server-btn.shutdown:hover {
+    color: var(--del-fg);
+    border-color: var(--del-fg);
+    background: rgba(255, 94, 108, 0.08);
+  }
+  .server-btn.restart {
+    color: #ffb454;
+    border-color: rgba(255, 180, 84, 0.35);
+  }
+  .server-btn.restart:hover {
+    color: #ffb454;
+    border-color: #ffb454;
+    background: rgba(255, 180, 84, 0.08);
+  }
+
+  .offline-banner {
+    position: fixed;
+    top: 32px;
+    left: 0; right: 0;
+    padding: 8px 14px;
+    background: rgba(255, 94, 108, 0.12);
+    border-bottom: 1px solid var(--del-fg);
+    color: var(--del-fg);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    text-align: center;
+    z-index: 50;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="brand" id="brand" title="grammar hook">grammar</span>
+  <a
+    class="update-pill"
+    id="update-pill"
+    href="#"
+    title="A newer version is available. Click for upgrade instructions."
+    target="_blank"
+    rel="noopener"
+  >update</a>
+  <span class="pulse" id="pulse" data-state="down" role="button" tabindex="0" title="livestream"></span>
+  <span class="corrector-pill" id="corrector-pill" title="active corrector">
+    <span class="name" id="corrector-name">—</span>
+    <span class="model" id="corrector-model"></span>
+  </span>
+  <div class="translate-wrap">
+    <input
+      id="translate-input"
+      class="translate-input"
+      type="text"
+      maxlength="120"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="translate"
+      title="type a word, press Enter — auto-detects direction by script"
+    />
+    <span class="translate-lang" id="translate-lang" data-dir="">—</span>
+    <div class="translate-panel" id="translate-panel" role="dialog" aria-live="polite"></div>
+  </div>
+  <div class="stats">
+    <span class="stat-compact" id="stat-compact" title="total / today">
+      <span id="stat-total">0</span><span class="sub">/<span id="stat-today">0</span></span>
+    </span>
+    <a class="icon-btn" id="reports-link" href="/reports" aria-label="reports" title="reports">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="8" y1="13" x2="16" y2="13"/>
+        <line x1="8" y1="17" x2="16" y2="17"/>
+        <line x1="8" y1="9" x2="10" y2="9"/>
+      </svg>
+    </a>
+    <a class="icon-btn has-badge" id="logs-link" href="/logs" aria-label="hook logs" title="hook logs">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="16" rx="2"/>
+        <polyline points="6 9 9 12 6 15"/>
+        <line x1="12" y1="15" x2="17" y2="15"/>
+      </svg>
+      <span class="badge-dot" aria-hidden="true"></span>
+    </a>
+    <button class="icon-btn" id="info-button" aria-label="info" title="about this tool">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="16" x2="12" y2="11"/>
+        <line x1="12" y1="8" x2="12.01" y2="8"/>
+      </svg>
+    </button>
+    <button class="icon-btn cog" id="cog-button" aria-label="settings" title="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+    <button class="icon-btn" id="server-restart-btn" aria-label="restart server" title="restart server">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+      </svg>
+    </button>
+    <button class="icon-btn danger" id="server-shutdown-btn" aria-label="shutdown server" title="shutdown server">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+        <line x1="12" y1="2" x2="12" y2="12"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<div class="scrim" id="scrim" aria-hidden="true">
+  <div class="modal" role="dialog" aria-labelledby="modal-title">
+    <header>
+      <span id="modal-title">settings</span>
+      <button class="x" id="modal-close" aria-label="close">✕</button>
+    </header>
+    <div class="modal-body" id="modal-body" data-corrector="groq">
+
+      <div class="modal-tabs" role="tablist">
+        <button type="button" class="modal-tab active" data-tab="corrector" role="tab" aria-selected="true">corrector</button>
+        <button type="button" class="modal-tab" data-tab="appearance" role="tab" aria-selected="false">appearance</button>
+        <button type="button" class="modal-tab" data-tab="general" role="tab" aria-selected="false">general</button>
+      </div>
+
+      <div class="modal-tab-panel active" data-panel="corrector" role="tabpanel">
+        <div class="field">
+          <div class="segments" id="corrector-segments"></div>
+          <span class="field-hint" id="corrector-desc">⚡ Fast (~2s). Requires API key — free tier at console.groq.com.</span>
+        </div>
+
+        <div class="only-groq">
+          <div class="field">
+            <span class="field-label">groq api key</span>
+            <div class="key-status" id="key-status">checking…</div>
+            <input class="text" id="groq-api-key" type="password" autocomplete="off" spellcheck="false"
+                   placeholder="gsk_…  (leave blank to keep existing)" />
+            <span class="field-hint">saved to <code>.env</code> with 0600 perms. env vars take precedence.</span>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <span class="field-label">groq model</span>
+              <input class="text" id="groq-model" type="text" spellcheck="false" />
+            </div>
+            <div class="field">
+              <span class="field-label">groq timeout (s)</span>
+              <input class="text" id="groq-timeout" type="number" min="1" max="120" />
+            </div>
+          </div>
+        </div>
+
+        <div class="only-claude">
+          <div class="grid-2">
+            <div class="field">
+              <span class="field-label">claude model</span>
+              <input class="text" id="claude-model" type="text" spellcheck="false" />
+            </div>
+            <div class="field">
+              <span class="field-label">claude timeout (s)</span>
+              <input class="text" id="claude-timeout" type="number" min="1" max="300" />
+            </div>
+          </div>
+        </div>
+
+        <div class="only-languagetool">
+          <div class="field">
+            <span class="field-label">languagetool language</span>
+            <input class="text" id="lt-language" type="text" spellcheck="false" />
+            <span class="field-hint">e.g. <code>en-US</code>, <code>en-GB</code>, <code>de-DE</code>.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-tab-panel" data-panel="appearance" role="tabpanel">
+        <div class="field">
+          <span class="field-label">accent theme</span>
+          <div class="theme-swatches" id="theme-swatches"></div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">chat format</span>
+          <div class="segments" id="chat-format-segments"></div>
+          <span class="field-hint" id="chat-format-hint">How much detail to show per correction. Changes take effect immediately.</span>
+        </div>
+
+        <div class="field toggle-field">
+          <label class="toggle-row">
+            <input type="checkbox" id="dogs-enabled" />
+            <span class="field-label">show dogs</span>
+          </label>
+          <span class="field-hint">Animated dog mascot(s) react to hook activity. Uncheck for a quieter dashboard.</span>
+        </div>
+
+        <div class="field">
+          <span class="field-label">translation target language</span>
+          <select class="text" id="translation-target"></select>
+          <span class="field-hint">English is always one side. Direction is auto-detected by scanning for non-ASCII characters.</span>
+        </div>
+      </div>
+
+      <div class="modal-tab-panel" data-panel="general" role="tabpanel">
+        <div class="grid-2">
+          <div class="field">
+            <span class="field-label">bypass marker</span>
+            <input class="text" id="bypass-marker" type="text" spellcheck="false" />
+            <span class="field-hint">Put this at the end of any prompt to skip grammar checking for just that prompt. Default: ^^^</span>
+          </div>
+          <div class="field">
+            <span class="field-label">separator</span>
+            <input class="text" id="separator" type="text" spellcheck="false" />
+            <span class="field-hint">Put this on its own line in a prompt — only text ABOVE the line is grammar-checked, anything below is treated as data/code. Default: ,,</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">min natural text length</span>
+          <input class="text" id="min-len" type="number" min="1" max="500" />
+          <span class="field-hint">prompts with less natural text are skipped (e.g. "ok", "yes").</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="modal-cancel">cancel</button>
+      <button class="btn primary" id="modal-save">save</button>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="info-scrim" aria-hidden="true">
+  <div class="modal" role="dialog" aria-labelledby="info-title">
+    <header>
+      <span id="info-title">about grammar·log</span>
+      <button class="x" id="info-close" aria-label="close">✕</button>
+    </header>
+    <div class="modal-body info-body">
+      <p class="lead">A local Claude Code hook that grammar-checks every prompt you submit and streams the diffs to this dashboard. Nothing leaves your machine except API calls to the selected corrector.</p>
+
+      <h3>correctors</h3>
+
+      <div class="corrector-card groq">
+        <b>groq</b>
+        <span>Fast (~2s), structured JSON output. Primary model is <code>llama-3.3-70b-versatile</code>; on 429 rate-limit it falls back automatically to <code>llama-4-scout-17b</code>, then <code>qwen3-32b</code>. Requires an API key (free tier). → <a href="https://console.groq.com/" target="_blank" rel="noopener">console.groq.com</a></span>
+      </div>
+
+      <div class="corrector-card claude_cli">
+        <b>claude_cli</b>
+        <span>Highest quality. Invokes <code>claude -p</code> with Haiku in non-interactive mode — no API key needed, uses your existing Claude subscription. Slower (~5-10s) but best at tense/structure.</span>
+      </div>
+
+      <div class="corrector-card languagetool">
+        <b>languagetool</b>
+        <span>Free, rule-based grammar engine — no LLM. Good for spelling and typos, weak on tense/word-order/structure. ~20 req/min public limit. → <a href="https://languagetool.org/" target="_blank" rel="noopener">languagetool.org</a></span>
+      </div>
+
+      <h3>special markers</h3>
+      <div class="marker-row">
+        <code id="marker-sep">,,</code>
+        <span>separator — text above it is natural language to correct; everything below is data/code and ignored.</span>
+      </div>
+      <div class="marker-row">
+        <code id="marker-bypass">^^^</code>
+        <span>bypass marker — ends the prompt with this to skip grammar correction entirely.</span>
+      </div>
+
+      <h3>header bar</h3>
+      <div class="marker-row">
+        <code>pill</code>
+        <span>shows the active corrector and (for LLMs) the current model. Hover for full name if truncated.</span>
+      </div>
+      <div class="marker-row">
+        <code>N/M</code>
+        <span>total corrected prompts over today's count. Hover for the top category.</span>
+      </div>
+      <div class="marker-row">
+        <code>logs •</code>
+        <span>a red dot on the logs icon means new <code>[ERROR]</code> entries since you last opened the logs page.</span>
+      </div>
+      <div class="marker-row">
+        <code>hover</code>
+        <span>hover any red/green correction chip for the original → replacement diff and the rule explanation.</span>
+      </div>
+
+      <h3>database</h3>
+      <div class="db-stats" id="db-stats">
+        <div class="db-stat"><span class="k">size</span><span class="v" id="db-size">—</span></div>
+        <div class="db-stat"><span class="k">prompts</span><span class="v" id="db-prompts">—</span></div>
+        <div class="db-stat"><span class="k">corrections</span><span class="v" id="db-corrections">—</span></div>
+        <div class="db-stat"><span class="k">reports</span><span class="v" id="db-reports">—</span></div>
+        <div class="db-stat"><span class="k">oldest</span><span class="v" id="db-oldest">—</span></div>
+      </div>
+      <div class="cleanup-row">
+        <span class="cleanup-label">delete prompts older than</span>
+        <div class="segments" id="cleanup-segments">
+          <button data-days="30">30d</button>
+          <button data-days="90">90d</button>
+          <button data-days="365">1y</button>
+        </div>
+      </div>
+
+      <h3>docs</h3>
+      <p>Full README at <code>~/.claude/hooks/grammar/README.md</code>.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn primary" id="info-ok">got it</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div id="empty" class="empty">awaiting input · corrections stream live from /api/corrections/stream</div>
+  <div id="list"></div>
+  <div class="tail" id="tail">
+    <div class="dog-lane" id="dog-lane">
+      <svg class="moon-icon" id="moon-icon" viewBox="0 0 12 12" width="12" height="12" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M 8,1 A 5,5 0 1 0 11,6 A 4,4 0 0 1 8,1 Z" fill="currentColor"/>
+      </svg>
+      <div id="dogs-container"></div>
+      <div class="dust-layer" id="dust-layer"></div>
+      <div class="speech-bubble" id="speech-bubble">woof!</div>
+    </div>
+    <span class="mood-label" id="mood-label">sitting</span>
+  </div>
+</main>
+
+<button class="scroll-bottom" id="scroll-bottom" aria-label="scroll to latest" title="scroll to latest">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+  <span class="badge" id="scroll-bottom-badge"></span>
+</button>
+
+<script>
+const listEl = document.getElementById('list');
+const emptyEl = document.getElementById('empty');
+const statTotal = document.getElementById('stat-total');
+const statToday = document.getElementById('stat-today');
+const statCompact = document.getElementById('stat-compact');
+const pulseEl = document.getElementById('pulse');
+const correctorNameEl = document.getElementById('corrector-name');
+const correctorModelEl = document.getElementById('corrector-model');
+const logsLinkEl = document.getElementById('logs-link');
+
+let total = 0, todayCount = 0;
+const categoryCounts = new Map();
+
+const CATEGORY = {
+  spelling:       { code: 'SPL', label: 'Spelling' },
+  capitalization: { code: 'CAP', label: 'Capitalization' },
+  punctuation:    { code: 'PNC', label: 'Punctuation' },
+  tense:          { code: 'TNS', label: 'Tense' },
+  agreement:      { code: 'AGR', label: 'Agreement' },
+  article:        { code: 'ART', label: 'Article' },
+  word_choice:    { code: 'WCH', label: 'Word choice' },
+  word_order:     { code: 'WRD', label: 'Word order' },
+  preposition:    { code: 'PRP', label: 'Preposition' },
+  contraction:    { code: 'CTR', label: 'Contraction' },
+  clarity:        { code: 'CLR', label: 'Clarity' },
+  grammar:        { code: 'GRM', label: 'Grammar' },
+};
+
+function categoryKey(correction) {
+  const raw = (correction.category || correction.rule || '').toLowerCase();
+  if (CATEGORY[raw]) return raw;
+  return 'grammar';
+}
+
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+
+function formatTime(iso) {
+  if (!iso) return '--:--:--';
+  const date = new Date(iso);
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Token-level LCS diff: highlights every differing whitespace-separated
+// token between `original` and `corrected`. Used by the plain `diff` format.
+function wordDiff(original, corrected, side) {
+  const a = original.split(/(\s+)/);
+  const b = corrected.split(/(\s+)/);
+  const n = a.length, m = b.length;
+  const dp = Array.from({length: n + 1}, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      if (a[i] === b[j]) dp[i][j] = dp[i + 1][j + 1] + 1;
+      else dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+  }
+  const out = [];
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (a[i] === b[j]) { out.push(escapeHtml(a[i])); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) {
+      if (side === 'orig' && a[i].trim()) out.push(`<span class="removed">${escapeHtml(a[i])}</span>`);
+      else if (side === 'orig') out.push(escapeHtml(a[i]));
+      i++;
+    } else {
+      if (side === 'corr' && b[j].trim()) out.push(`<span class="added">${escapeHtml(b[j])}</span>`);
+      else if (side === 'corr') out.push(escapeHtml(b[j]));
+      j++;
+    }
+  }
+  while (i < n) {
+    if (side === 'orig' && a[i].trim()) out.push(`<span class="removed">${escapeHtml(a[i])}</span>`);
+    else if (side === 'orig') out.push(escapeHtml(a[i]));
+    i++;
+  }
+  while (j < m) {
+    if (side === 'corr' && b[j].trim()) out.push(`<span class="added">${escapeHtml(b[j])}</span>`);
+    else if (side === 'corr') out.push(escapeHtml(b[j]));
+    j++;
+  }
+  return out.join('') || escapeHtml(side === 'orig' ? original : corrected);
+}
+
+// Wraps every tracked correction phrase in the given text with a hoverable
+// `.removed` / `.added` span. `side='orig'` matches by `correction.original`
+// against the original text; `side='corr'` matches by `correction.replacement`
+// against the corrected text. Unmatched runs of text render as plain escaped
+// HTML, so lines without corrections degrade to plain text.
+function buildDiffHtml(text, corrections, side) {
+  if (!corrections.length) return escapeHtml(text);
+  const lookup = new Map();
+  for (const correction of corrections) {
+    const keySource = side === 'orig' ? correction.original : correction.replacement;
+    const key = (keySource || '').trim();
+    if (key && !lookup.has(key)) {
+      lookup.set(key, {
+        original: correction.original || '',
+        replacement: correction.replacement || '',
+        message: correction.message || '',
+      });
+    }
+  }
+  const sortedKeys = [...lookup.keys()].sort((a, b) => b.length - a.length);
+  const cls = side === 'orig' ? 'removed' : 'added';
+  let remaining = text;
+  const parts = [];
+  while (remaining.length) {
+    let bestIndex = -1;
+    let bestKey = null;
+    let bestLen = 0;
+    for (const key of sortedKeys) {
+      const match = findWholePhrase(remaining, key);
+      if (match.index === -1) continue;
+      if (bestIndex === -1 || match.index < bestIndex) {
+        bestIndex = match.index;
+        bestKey = key;
+        bestLen = match.length;
+      }
+    }
+    if (bestKey === null) {
+      parts.push(escapeHtml(remaining));
+      break;
+    }
+    if (bestIndex > 0) parts.push(escapeHtml(remaining.slice(0, bestIndex)));
+    const info = lookup.get(bestKey);
+    const matched = remaining.slice(bestIndex, bestIndex + bestLen);
+    const tip = `${info.original} → ${info.replacement}${info.message ? ' · ' + info.message : ''}`;
+    parts.push(`<span class="${cls}" data-tip="${escapeHtml(tip)}">${escapeHtml(matched)}</span>`);
+    remaining = remaining.slice(bestIndex + bestLen);
+  }
+  return parts.join('') || escapeHtml(text);
+}
+
+function renderCard(record) {
+  const card = document.createElement('article');
+  card.className = 'card';
+  const corrections = record.corrections || [];
+  const originalText = record.natural_text || '';
+  const correctedText = record.corrected_text || originalText;
+
+  const originalPlainHtml = wordDiff(originalText, correctedText, 'orig');
+  const correctedPlainHtml = wordDiff(originalText, correctedText, 'corr');
+  const originalAnnotatedHtml = buildDiffHtml(originalText, corrections, 'orig');
+  const correctedAnnotatedHtml = buildDiffHtml(correctedText, corrections, 'corr');
+  const inlineHtml = buildInlineHtml(originalText, corrections);
+  const annotatedHtml = buildAnnotatedHtml(correctedText, corrections);
+
+  const changesHtml = corrections.map((correction) => {
+    const key = categoryKey(correction);
+    const catInfo = CATEGORY[key];
+    return `
+      <div class="change" style="--cat: var(--cat-${key})">
+        <span class="cat" title="${escapeHtml(catInfo.label)}">${catInfo.code}</span>
+        <span class="pair"><span class="del">${escapeHtml(correction.original || '∅')}</span><span class="ar">→</span><span class="add">${escapeHtml(correction.replacement || '∅')}</span></span>
+        <span class="exp">${escapeHtml(correction.message || '')}</span>
+      </div>`;
+  }).join('');
+
+  const changesCount = corrections.length;
+  const countLabel = `${changesCount} change${changesCount === 1 ? '' : 's'}`;
+
+  card.innerHTML = `
+    <div class="meta">
+      <span class="ts">${formatTime(record.timestamp)}</span>
+      <span class="corr">${escapeHtml(record.corrector || 'unknown')}</span>
+      <span class="count"><b>${changesCount}</b> ${countLabel.split(' ').slice(1).join(' ')}</span>
+    </div>
+    <div class="row orig diff-plain"><span class="g">−</span><span class="body">${originalPlainHtml}</span></div>
+    <div class="row corr diff-plain"><span class="g">+</span><span class="body">${correctedPlainHtml}</span></div>
+    <div class="row orig diff-annotated"><span class="g">−</span><span class="body">${originalAnnotatedHtml}</span></div>
+    <div class="row corr diff-annotated"><span class="g">+</span><span class="body">${correctedAnnotatedHtml}</span></div>
+    <div class="row inline-line"><span class="g">±</span><span class="body">${inlineHtml}</span></div>
+    <div class="row annotated-line"><span class="g">+</span><span class="body">${annotatedHtml}</span></div>
+    ${changesHtml ? `<div class="changes">${changesHtml}</div>` : ''}
+  `;
+  return card;
+}
+
+function buildInlineHtml(originalText, corrections) {
+  if (!corrections.length) return escapeHtml(originalText);
+  const lookup = new Map();
+  for (const correction of corrections) {
+    const original = (correction.original || '').trim();
+    if (original && !lookup.has(original)) {
+      lookup.set(original, {
+        replacement: (correction.replacement || '').trim(),
+        message: correction.message || '',
+        category: correction.category || '',
+      });
+    }
+  }
+  const sortedKeys = [...lookup.keys()].sort((a, b) => b.length - a.length);
+  let remaining = originalText;
+  const parts = [];
+  while (remaining.length) {
+    let bestIndex = -1;
+    let bestKey = null;
+    let bestLen = 0;
+    for (const key of sortedKeys) {
+      const match = findWholePhrase(remaining, key);
+      if (match.index === -1) continue;
+      if (bestIndex === -1 || match.index < bestIndex) {
+        bestIndex = match.index;
+        bestKey = key;
+        bestLen = match.length;
+      }
+    }
+    if (bestKey === null) {
+      parts.push(escapeHtml(remaining));
+      break;
+    }
+    if (bestIndex > 0) parts.push(escapeHtml(remaining.slice(0, bestIndex)));
+    const info = lookup.get(bestKey);
+    const matchedText = remaining.slice(bestIndex, bestIndex + bestLen);
+    const tooltip = `${matchedText} → ${info.replacement}${info.message ? ' · ' + info.message : ''}`;
+    parts.push(
+      `<span class="arrow-pair" data-tip="${escapeHtml(tooltip)}"><span class="removed">${escapeHtml(matchedText)}</span><span class="a">→</span><span class="added">${escapeHtml(info.replacement)}</span></span>`
+    );
+    remaining = remaining.slice(bestIndex + bestLen);
+  }
+  return parts.join('') || escapeHtml(originalText);
+}
+
+// Find `needle` inside `haystack` only at word boundaries, so short keys
+// like "go" don't match inside "good". Falls back to plain indexOf when
+// the needle starts/ends with a non-word char (e.g. punctuation) so those
+// phrases still match.
+function findWholePhrase(haystack, needle) {
+  if (!needle) return { index: -1, length: 0 };
+  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const startsWithWord = /^\w/.test(needle);
+  const endsWithWord = /\w$/.test(needle);
+  const pattern = (startsWithWord ? '\\b' : '') + escaped + (endsWithWord ? '\\b' : '');
+  const re = new RegExp(pattern);
+  const m = re.exec(haystack);
+  return m ? { index: m.index, length: m[0].length } : { index: -1, length: 0 };
+}
+
+function buildAnnotatedHtml(correctedText, corrections) {
+  if (!corrections.length) return escapeHtml(correctedText);
+  const lookup = new Map();
+  for (const correction of corrections) {
+    const replacement = (correction.replacement || '').trim();
+    if (replacement && !lookup.has(replacement)) {
+      lookup.set(replacement, {
+        original: correction.original || '',
+        message: correction.message || '',
+        category: correction.category || '',
+      });
+    }
+  }
+  const sortedKeys = [...lookup.keys()].sort((a, b) => b.length - a.length);
+  let remaining = correctedText;
+  const parts = [];
+  while (remaining.length) {
+    let bestIndex = -1;
+    let bestKey = null;
+    let bestLen = 0;
+    for (const key of sortedKeys) {
+      const match = findWholePhrase(remaining, key);
+      if (match.index === -1) continue;
+      if (bestIndex === -1 || match.index < bestIndex) {
+        bestIndex = match.index;
+        bestKey = key;
+        bestLen = match.length;
+      }
+    }
+    if (bestKey === null) {
+      parts.push(escapeHtml(remaining));
+      break;
+    }
+    if (bestIndex > 0) parts.push(escapeHtml(remaining.slice(0, bestIndex)));
+    const info = lookup.get(bestKey);
+    const matchedText = remaining.slice(bestIndex, bestIndex + bestLen);
+    const title = `${info.original} → ${matchedText}${info.message ? ' · ' + info.message : ''}`;
+    parts.push(
+      `<span class="annotated-word" data-tip="${escapeHtml(title)}">${escapeHtml(matchedText)}</span>`
+    );
+    remaining = remaining.slice(bestIndex + bestLen);
+  }
+  return parts.join('') || escapeHtml(correctedText);
+}
+
+function isScrolledNearBottom() {
+  return window.innerHeight + window.scrollY >= document.body.offsetHeight - 120;
+}
+
+const MAX_VISIBLE_CARDS = 30;
+const scrollBottomBtn = document.getElementById('scroll-bottom');
+const scrollBottomBadge = document.getElementById('scroll-bottom-badge');
+let unseenCount = 0;
+
+function trimOldestCards() {
+  while (listEl.children.length > MAX_VISIBLE_CARDS) {
+    listEl.firstElementChild.remove();
+  }
+}
+
+function updateScrollBottomBtn() {
+  if (isScrolledNearBottom()) {
+    scrollBottomBtn.classList.remove('visible');
+    unseenCount = 0;
+    scrollBottomBadge.textContent = '';
+  } else {
+    scrollBottomBtn.classList.add('visible');
+  }
+}
+
+scrollBottomBtn.addEventListener('click', () => {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+});
+
+window.addEventListener('scroll', updateScrollBottomBtn, { passive: true });
+
+function addRecord(record, autoScroll, { countAsNew = true } = {}) {
+  emptyEl.style.display = 'none';
+  const shouldScroll = autoScroll && isScrolledNearBottom();
+  listEl.appendChild(renderCard(record));
+  trimOldestCards();
+  if (shouldScroll) {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  } else if (autoScroll) {
+    unseenCount++;
+    scrollBottomBadge.textContent = unseenCount > 99 ? '99+' : String(unseenCount);
+    scrollBottomBtn.classList.add('visible');
+  }
+
+  if (!countAsNew) return;
+
+  total++;
+  statTotal.textContent = total;
+  if ((record.timestamp || '').slice(0, 10) === todayKey()) {
+    todayCount++;
+    statToday.textContent = todayCount;
+  }
+  for (const correction of record.corrections || []) {
+    const key = categoryKey(correction);
+    categoryCounts.set(key, (categoryCounts.get(key) || 0) + 1);
+  }
+  refreshTopCategory();
+}
+
+function refreshTopCategory() {
+  let topKey = null, topCount = 0;
+  for (const [key, count] of categoryCounts) {
+    if (count > topCount) { topKey = key; topCount = count; }
+  }
+  refreshStatsTooltip(topKey);
+}
+
+function refreshStatsTooltip(topKey) {
+  const topLabel = topKey && CATEGORY[topKey] ? CATEGORY[topKey].label : null;
+  const parts = [
+    `total: ${total}`,
+    `today: ${todayCount}`,
+  ];
+  if (topLabel) parts.push(`top: ${topLabel}`);
+  statCompact.title = parts.join(' · ');
+}
+
+async function pollErrorBadge() {
+  try {
+    const response = await fetch('/api/logs/errors');
+    if (!response.ok) return;
+    const data = await response.json();
+    const count = data.unread_errors || 0;
+    logsLinkEl.setAttribute('data-has-errors', count > 0 ? 'true' : 'false');
+    logsLinkEl.title = count > 0 ? `hook logs · ${count} unread error${count === 1 ? '' : 's'}` : 'hook logs';
+  } catch (error) { /* swallow — polling */ }
+}
+
+async function seedCorrectorPill() {
+  try {
+    const response = await fetch('/api/settings');
+    const data = await response.json();
+    const settings = data.settings || {};
+    const corrector = settings.corrector || '—';
+    correctorNameEl.textContent = corrector;
+    let model = '';
+    if (corrector === 'groq') model = (settings.groq || {}).model || '';
+    else if (corrector === 'claude_cli') model = (settings.claude_cli || {}).model || '';
+    correctorModelEl.textContent = model ? ` · ${model}` : '';
+    activeCorrector = corrector;
+  } catch (error) {
+    console.error('seedCorrectorPill failed', error);
+  }
+}
+
+let activeCorrector = null;
+
+async function seedStatsFromDb() {
+  try {
+    const response = await fetch('/api/stats');
+    const stats = await response.json();
+    const todayStr = todayKey();
+    const todayRow = (stats.per_day || []).find((d) => d.day === todayStr);
+    total = stats.total_prompts || 0;
+    todayCount = todayRow ? todayRow.count : 0;
+    categoryCounts.clear();
+    for (const row of stats.top_categories || []) {
+      if (row.category) categoryCounts.set(row.category, row.count);
+    }
+    statTotal.textContent = total;
+    statToday.textContent = todayCount;
+    refreshTopCategory();
+  } catch (error) {
+    console.error('seedStatsFromDb failed', error);
+  }
+}
+
+async function bootstrap() {
+  try {
+    const response = await fetch(`/api/corrections?limit=${MAX_VISIBLE_CARDS}`);
+    const records = await response.json();
+    if (records.length) {
+      records.reverse();
+      for (const record of records) addRecord(record, false, { countAsNew: false });
+      window.scrollTo({ top: document.body.scrollHeight });
+    }
+    await seedStatsFromDb();
+    await seedCorrectorPill();
+    pollErrorBadge();
+    setInterval(pollErrorBadge, 20000);
+  } catch (error) { console.error(error); }
+}
+
+let eventSource = null;
+let lastSignalAt = 0;   // any event (heartbeat counts)
+let lastWorkAt = 0;     // real work only (correction / report / pending)
+let pulseState = 'down';
+let reconnectAttempts = 0;
+
+// Thresholds. Backend sends a `heartbeat` event every ~15s, so 30s silence
+// means two in a row were missed — link is probably stuck.
+const WORK_FRESH_MS = 5 * 60 * 1000;
+const STALE_MS = 30_000;
+const STALE_TIMEOUT_MS = 60_000;
+const MAX_RECONNECT_ATTEMPTS = 3;
+
+function setPulseState(next) {
+  if (pulseState !== next) {
+    pulseState = next;
+    pulseEl.setAttribute('data-state', next);
+    // Dog mirrors pulse — transition baselines immediately instead of
+    // waiting up to 1s for the next idle-baseline tick.
+    if (typeof dogs !== 'undefined') {
+      for (const dog of dogs.values()) updateBaselineFromIdleFor(dog);
+    }
+  }
+  updatePulseTitle();
+}
+
+function formatAge(ms) {
+  if (!ms) return 'never';
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m ago`;
+  return `${Math.round(m / 60)}h ago`;
+}
+
+function updatePulseTitle() {
+  const now = Date.now();
+  const signalAgeMs = lastSignalAt ? now - lastSignalAt : 0;
+  const workAgeMs   = lastWorkAt   ? now - lastWorkAt   : 0;
+  let text;
+  switch (pulseState) {
+    case 'working':
+      text = `Livestream OK\nlast event ${formatAge(workAgeMs)} — actively receiving corrections`;
+      break;
+    case 'idle':
+      text = `Livestream OK · idle\nno corrections in ${formatAge(workAgeMs)}\nheartbeat ${formatAge(signalAgeMs)} — link is healthy`;
+      break;
+    case 'reconnecting':
+      text = `Reconnecting to livestream…\nif this persists, click to force a fresh connection`;
+      break;
+    case 'stale':
+      text = `Link stalled\nno heartbeat for ${formatAge(signalAgeMs)} — retrying automatically\nclick to reconnect now`;
+      break;
+    case 'down':
+    default:
+      text = `Livestream disconnected\nclick to reconnect`;
+  }
+  pulseEl.title = text;
+}
+
+function markSignal() { lastSignalAt = Date.now(); }
+
+function markWork() {
+  lastWorkAt = Date.now();
+  lastSignalAt = lastWorkAt;
+  setPulseState('working');
+}
+
+function connectStream() {
+  if (eventSource) {
+    try { eventSource.close(); } catch (_) { /* ignore */ }
+  }
+  setPulseState('reconnecting');
+  const source = new EventSource('/api/corrections/stream');
+  eventSource = source;
+  source.onopen = () => {
+    reconnectAttempts = 0;
+    markSignal();
+    const freshWork = lastWorkAt && (Date.now() - lastWorkAt) < WORK_FRESH_MS;
+    setPulseState(freshWork ? 'working' : 'idle');
+    if (window.__dogReconnected) window.__dogReconnected();
+    updateBaselineFromIdle();
+  };
+  source.onmessage = (event) => {
+    markWork();
+    try {
+      const record = JSON.parse(event.data);
+      if (window.__dogCorrectionArrived) window.__dogCorrectionArrived(record);
+      addRecord(record, true);
+    } catch (error) { console.error(error); }
+  };
+  source.addEventListener('heartbeat', () => {
+    markSignal();
+    // If we were stale, heartbeat recovers us to green — work age decides speed.
+    if (pulseState === 'stale') {
+      const freshWork = lastWorkAt && (Date.now() - lastWorkAt) < WORK_FRESH_MS;
+      setPulseState(freshWork ? 'working' : 'idle');
+    } else {
+      updatePulseTitle();
+    }
+  });
+  source.addEventListener('report', (event) => {
+    markWork();
+    try {
+      const report = JSON.parse(event.data);
+      if (window.__dogReportGenerated) window.__dogReportGenerated(report);
+    } catch (error) { console.error(error); }
+  });
+  source.addEventListener('pending', (event) => {
+    markWork();
+    try {
+      const data = JSON.parse(event.data);
+      if (window.__dogPending) window.__dogPending(data);
+    } catch (error) { console.error(error); }
+  });
+  source.onerror = () => {
+    reconnectAttempts++;
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      setPulseState('down');
+    } else {
+      setPulseState('reconnecting');
+    }
+    if (window.__dogDisconnected) window.__dogDisconnected();
+  };
+}
+
+// Watchdog: demotes working→idle after 5min of no work, promotes green→stale
+// after 30s of silence, and escalates stale→reconnecting after 60s silence.
+setInterval(() => {
+  const now = Date.now();
+  const signalAge = lastSignalAt ? now - lastSignalAt : Infinity;
+  const workAge = lastWorkAt ? now - lastWorkAt : Infinity;
+
+  if (pulseState === 'down' || pulseState === 'reconnecting') {
+    updatePulseTitle();
+    return;
+  }
+
+  if (pulseState === 'stale' && signalAge > STALE_TIMEOUT_MS) {
+    connectStream();
+    return;
+  }
+
+  if ((pulseState === 'working' || pulseState === 'idle') && signalAge > STALE_MS) {
+    setPulseState('stale');
+    return;
+  }
+
+  if (pulseState === 'working' && workAge > WORK_FRESH_MS) {
+    setPulseState('idle');
+    return;
+  }
+
+  updatePulseTitle();
+}, 3000);
+
+const forceReconnect = () => connectStream();
+pulseEl.addEventListener('click', forceReconnect);
+pulseEl.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); forceReconnect(); }
+});
+
+bootstrap().then(connectStream);
+
+// After laptop wake / tab becoming visible again, the SSE connection is
+// often dead but EventSource's built-in retry can take minutes. Force a
+// fresh reconnect the moment the tab is visible again if we're not live.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  const isClosed = !eventSource || eventSource.readyState === EventSource.CLOSED;
+  if (pulseState !== 'live' || isClosed) connectStream();
+});
+
+// ── DOG PACK BEHAVIOR ENGINE ─────────────────────────────────────
+// Multiple dogs keyed by session_id, each with its own baseline + transient.
+// The primary dog (this browser's session) operates identically to the
+// previous single-dog system for backwards-compatibility.
+const dogsContainerEl = document.getElementById('dogs-container');
+const dogLaneEl = document.getElementById('dog-lane');
+const dustLayerEl = document.getElementById('dust-layer');
+const speechBubbleEl = document.getElementById('speech-bubble');
+const moonIconEl = document.getElementById('moon-icon');
+const moodLabelEl = document.getElementById('mood-label');
+const tailEl = document.getElementById('tail');
+
+// Spotlight offset: tail padding-left (12px) + half dog-pos width (36px).
+// Keeps the radial gradient centered on the dog as it moves.
+const SPOTLIGHT_OFFSET_PX = 48;
+function updateSpotlight(state) {
+  if (!state.isPrimary) return;
+  tailEl.style.setProperty('--dog-x', (SPOTLIGHT_OFFSET_PX + state.position) + 'px');
+}
+
+const BASELINE_LABELS = {
+  sitting:        'sitting',
+  walking:        'walking',
+  sniffing:       'sniffing',
+  'zoomies-run':  'zoomies',
+  napping:        'napping',
+  sleeping:       'sleeping',
+};
+const TRANSIENT_LABELS = {
+  jumping:  'excited',
+  barking:  'woof!',
+  spinning: 'spinning',
+  howling:  'offline',
+  alert:    'alert',
+  beg:      'begging',
+  stretch:  'stretching',
+  shake:    'shaking',
+  waiting:  'listening',
+};
+
+const BURST_WINDOW_MS = 10000;
+const BURST_ZOOMIES_THRESHOLD = 3;
+const BURST_SPIN_THRESHOLD = 6;
+const HYPER_EVENT_THRESHOLD = 9;   // single-dog "mega zoomies" — periodic spin+bark on top of zoomies
+const PACK_BURST_THRESHOLD = 5;    // pooled events across all dogs → every dog joins zoomies
+const PENDING_CHORUS_MIN_DOGS = 2; // concurrent prompts from ≥N sessions → coordinated bark chorus
+const IDLE_WALK_SEC = 30;
+const IDLE_SNIFF_SEC = 120;
+const IDLE_NAP_SEC = 300;
+const IDLE_SLEEP_SEC = 600;
+const IDLE_BARK_GATE_SEC = 10;
+const ALERT_CHANGE_THRESHOLD = 6;
+
+const WALK_SPEED_PX_PER_SEC = 20;
+const SNIFF_SPEED_PX_PER_SEC = 10;
+const ZOOMIES_SPEED_PX_PER_SEC = 60;
+
+const MAX_DOGS = 4;
+const IDLE_EVICTION_MS = 5 * 60 * 1000;
+const PROXIMITY_PX = 30;
+const PROXIMITY_COOLDOWN_MS = 3000;
+const DOG_WIDTH = 72;
+const PACK_COLORS = [
+  'var(--add-fg)',        // green — primary
+  'var(--cat-spelling)',  // amber
+  'var(--cat-article)',   // cyan
+  'var(--cat-tense)',     // pink
+];
+
+const dogs = new Map();            // session_id → DogState
+let primarySessionId = (() => {
+  try { return localStorage.getItem('grammarDashSessionId') || null; }
+  catch (_) { return null; }
+})();
+let previousBaselineBeforeModal = null;
+
+function hashSessionToColorIndex(id) {
+  let sum = 0;
+  for (let i = 0; i < id.length; i++) sum = (sum + id.charCodeAt(i)) % 4;
+  return sum;
+}
+
+function pickColorIndex(sessionId) {
+  if (sessionId === primarySessionId) return 0;
+  let index = hashSessionToColorIndex(sessionId);
+  // Collision with primary → bump to next free slot (excluding 0).
+  if (index === 0) index = 1;
+  const taken = new Set();
+  for (const dog of dogs.values()) {
+    if (dog.sessionId !== sessionId) taken.add(dog.colorIndex);
+  }
+  if (taken.has(index)) {
+    for (let candidate = 1; candidate < PACK_COLORS.length; candidate++) {
+      if (!taken.has(candidate)) { index = candidate; break; }
+    }
+  }
+  return index;
+}
+
+function getLaneWidth() {
+  return Math.max(80, dogLaneEl.clientWidth - DOG_WIDTH);
+}
+
+function basename(cwd) {
+  if (!cwd) return '';
+  const trimmed = cwd.replace(/\/+$/, '');
+  const slash = trimmed.lastIndexOf('/');
+  return slash >= 0 ? trimmed.slice(slash + 1) : trimmed;
+}
+
+function shortSession(id) {
+  return (id || '').slice(-4);
+}
+
+function buildDogSvg() {
+  const svgNs = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNs, 'svg');
+  svg.setAttribute('class', 'dog');
+  svg.setAttribute('viewBox', '0 0 72 48');
+  svg.setAttribute('aria-label', 'grammar dog');
+  svg.dataset.baseline = 'sitting';
+  svg.dataset.transient = '';
+  svg.dataset.facing = 'right';
+  svg.innerHTML = `
+    <g class="zzz">
+      <text x="58" y="12" font-size="5" font-family="IBM Plex Mono, monospace" fill="currentColor" opacity="0.5">z</text>
+      <text x="62" y="6" font-size="7" font-family="IBM Plex Mono, monospace" fill="currentColor">Z</text>
+    </g>
+    <text class="qmark" x="56" y="10" font-size="8" font-family="IBM Plex Mono, monospace" font-weight="700" fill="currentColor">?</text>
+    <g>
+      <circle class="sound-wave" cx="66" cy="26" r="3" fill="none" stroke="currentColor" stroke-width="0.8"/>
+      <circle class="sound-wave" cx="66" cy="26" r="5" fill="none" stroke="currentColor" stroke-width="0.8"/>
+      <circle class="sound-wave" cx="66" cy="26" r="7" fill="none" stroke="currentColor" stroke-width="0.8"/>
+    </g>
+    <g class="body-group">
+      <path class="tail-line" d="M 14,28 Q 4,20 6,12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+      <ellipse cx="32" cy="32" rx="18" ry="7" fill="currentColor"/>
+      <g class="leg-pair-a">
+        <rect x="18" y="36" width="3" height="8" rx="1.2" fill="currentColor"/>
+        <rect x="36" y="36" width="3" height="8" rx="1.2" fill="currentColor"/>
+      </g>
+      <g class="leg-pair-b">
+        <rect x="24" y="36" width="3" height="8" rx="1.2" fill="currentColor"/>
+        <rect x="42" y="36" width="3" height="8" rx="1.2" fill="currentColor"/>
+      </g>
+      <g class="head-group">
+        <circle cx="50" cy="24" r="8.5" fill="currentColor"/>
+        <ellipse cx="58" cy="26" rx="4" ry="3" fill="currentColor"/>
+        <circle class="nose-pulse" cx="61" cy="25.5" r="0.9" fill="var(--bg)"/>
+        <circle class="eye" cx="52" cy="22" r="1" fill="var(--bg)"/>
+        <path class="mouth-closed" d="M 56,28 Q 58,28.8 60,28" stroke="var(--bg)" stroke-width="0.5" fill="none" stroke-linecap="round"/>
+        <ellipse class="mouth-open" cx="58" cy="28.2" rx="1.4" ry="1.1" fill="var(--bg)"/>
+        <path class="ear" d="M 46,18 L 47.5,10 L 53,15 Z" fill="currentColor"/>
+      </g>
+    </g>
+  `;
+  return svg;
+}
+
+function createDog(sessionId, options) {
+  const isPrimary = sessionId === SOLO_KEY || sessionId === primarySessionId;
+  const colorIndex = pickColorIndex(sessionId);
+  const color = PACK_COLORS[colorIndex];
+
+  const posWrapper = document.createElement('div');
+  posWrapper.className = 'dog-pos spawning';
+  posWrapper.dataset.sessionId = sessionId;
+
+  const svg = buildDogSvg();
+  svg.style.setProperty('--dog-color', color);
+  if (isPrimary) svg.dataset.primary = 'true';
+  svg.setAttribute('title', `session ${shortSession(sessionId)} · ${basename(options.cwd || '')}`);
+  posWrapper.appendChild(svg);
+
+  dogsContainerEl.appendChild(posWrapper);
+
+  const startX = typeof options.x === 'number'
+    ? options.x
+    : Math.random() * getLaneWidth();
+
+  const state = {
+    sessionId,
+    isPrimary,
+    colorIndex,
+    color,
+    cwd: options.cwd || '',
+    posEl: posWrapper,
+    svgEl: svg,
+    position: startX,
+    facing: 'right',
+    baseline: 'sitting',
+    transient: '',
+    transientTimer: null,
+    turnCooldownUntil: 0,
+    lastActivity: Date.now(),
+    lastEventAt: Date.now(),
+    recentEvents: [],
+    proximityCooldownUntil: 0,
+    lastDustAt: 0,
+    destroyed: false,
+  };
+
+  posWrapper.style.transform = `translateX(${state.position}px)`;
+  updateSpotlight(state);
+
+  // Fade-in
+  requestAnimationFrame(() => {
+    posWrapper.classList.remove('spawning');
+  });
+
+  // Click to bark (primary retains original behavior; visitors do the same).
+  svg.addEventListener('click', () => {
+    playTransientOn(state, 'jumping', 500);
+    setTimeout(() => playTransientOn(state, 'barking', 800), 100);
+  });
+
+  dogs.set(sessionId, state);
+
+  // Visitor welcome: stretch → bark (primary doesn't do this on create).
+  if (!isPrimary) {
+    setTimeout(() => {
+      if (state.destroyed) return;
+      playTransientOn(state, 'stretch', 900);
+      setTimeout(() => {
+        if (!state.destroyed) playTransientOn(state, 'barking', 700);
+      }, 900);
+    }, 250);
+  }
+
+  return state;
+}
+
+function setBaselineOn(state, name) {
+  if (state.destroyed || state.baseline === name) return;
+  state.baseline = name;
+  state.svgEl.dataset.baseline = name;
+  if (state.isPrimary) updatePrimaryLabel();
+}
+
+function playTransientOn(state, action, duration) {
+  if (state.destroyed) return;
+  state.transient = action;
+  state.svgEl.dataset.transient = action;
+  if (state.isPrimary) {
+    updatePrimaryLabel();
+    if (action === 'barking') {
+      speechBubbleEl.textContent = 'woof!';
+      speechBubbleEl.classList.remove('show');
+      void speechBubbleEl.offsetWidth;
+      positionBubbleForPrimary(state);
+      speechBubbleEl.classList.add('show');
+    }
+  }
+  clearTimeout(state.transientTimer);
+  state.transientTimer = setTimeout(() => {
+    if (state.destroyed) return;
+    state.transient = '';
+    state.svgEl.dataset.transient = '';
+    if (state.isPrimary) updatePrimaryLabel();
+  }, duration || 800);
+}
+
+function positionBubbleForPrimary(state) {
+  const offset = state.facing === 'right' ? state.position + 48 : state.position + 8;
+  speechBubbleEl.style.left = offset + 'px';
+}
+
+function updatePrimaryLabel() {
+  const primary = getPrimaryDog();
+  if (!primary) {
+    moodLabelEl.textContent = '—';
+    return;
+  }
+  if (primary.transient && TRANSIENT_LABELS[primary.transient]) {
+    moodLabelEl.textContent = TRANSIENT_LABELS[primary.transient];
+  } else {
+    moodLabelEl.textContent = BASELINE_LABELS[primary.baseline] || primary.baseline;
+  }
+}
+
+function getPrimaryDog() {
+  if (primarySessionId && dogs.has(primarySessionId)) return dogs.get(primarySessionId);
+  return null;
+}
+
+function emitDustPuff(state) {
+  if (dustLayerEl.childElementCount >= 12) return;
+  const puff = document.createElement('div');
+  puff.className = 'dust-puff';
+  const behindOffset = state.facing === 'right'
+    ? state.position + 8
+    : state.position + 60;
+  puff.style.left = behindOffset + 'px';
+  dustLayerEl.appendChild(puff);
+  setTimeout(() => puff.remove(), 520);
+}
+
+// Map pulse (livestream health light) → dog baseline. The dog mirrors the
+// connection state so the two signals reinforce each other:
+//   down         (red solid)     → sleeping (server gone)
+//   stale        (orange slow)   → napping  (no signal for 30s+)
+//   reconnecting (orange fast)   → sitting  (trying to recover)
+//   idle         (green slow)    → sitting  (connected, quiet)
+//   working      (green fast)    → walking / sniffing / zoomies
+//                                  (activity-driven when actively serving)
+function updateBaselineFromIdleFor(state) {
+  const pulse = pulseEl.getAttribute('data-state');
+
+  if (pulse === 'down') { setBaselineOn(state, 'sleeping'); return; }
+  if (pulse === 'stale') { setBaselineOn(state, 'napping'); return; }
+  if (pulse === 'reconnecting' || pulse === 'idle') {
+    setBaselineOn(state, 'sitting');
+    return;
+  }
+
+  // pulse === 'working' — activity drives the exact baseline.
+  // Primary: modal pauses baseline motion. Non-primary ignores modal.
+  if (state.isPrimary && document.querySelector('.scrim.open')) return;
+
+  const now = Date.now();
+  const sinceLastSec = (now - state.lastEventAt) / 1000;
+  state.recentEvents = state.recentEvents.filter(t => now - t < BURST_WINDOW_MS);
+  const burstCount = state.recentEvents.length;
+
+  // Pack zoomies: if multiple sessions are busy at once, every dog joins
+  // the chaos — a visual signal that concurrent work is flowing.
+  if (dogs.size > 1 && totalRecentEventsAcrossPack() >= PACK_BURST_THRESHOLD) {
+    setBaselineOn(state, 'zoomies-run');
+    return;
+  }
+  if (burstCount >= BURST_ZOOMIES_THRESHOLD) {
+    setBaselineOn(state, 'zoomies-run');
+    return;
+  }
+  if (sinceLastSec > IDLE_SNIFF_SEC) setBaselineOn(state, 'sniffing');
+  else if (sinceLastSec > IDLE_WALK_SEC) setBaselineOn(state, 'walking');
+  else setBaselineOn(state, 'sitting');
+}
+
+function totalRecentEventsAcrossPack() {
+  const now = Date.now();
+  let total = 0;
+  for (const dog of dogs.values()) {
+    dog.recentEvents = dog.recentEvents.filter(t => now - t < BURST_WINDOW_MS);
+    total += dog.recentEvents.length;
+  }
+  return total;
+}
+
+function countWaitingDogs() {
+  let count = 0;
+  for (const dog of dogs.values()) {
+    if (dog.wasWaiting) count++;
+  }
+  return count;
+}
+
+function destroyDog(state, opts) {
+  if (state.destroyed) return;
+  state.destroyed = true;
+  clearTimeout(state.transientTimer);
+  dogs.delete(state.sessionId);
+  const fadeMs = (opts && opts.fadeMs) || 500;
+  // Farewell stretch if it was an idle eviction.
+  if (opts && opts.stretch) {
+    state.svgEl.dataset.transient = 'stretch';
+  }
+  state.posEl.classList.add('leaving');
+  setTimeout(() => {
+    state.posEl.remove();
+  }, fadeMs);
+}
+
+function evictLeastRecentlyActive() {
+  // Never evict primary.
+  let oldest = null;
+  for (const dog of dogs.values()) {
+    if (dog.isPrimary) continue;
+    if (!oldest || dog.lastActivity < oldest.lastActivity) oldest = dog;
+  }
+  // If no non-primary candidate (shouldn't happen at cap), evict oldest overall.
+  if (!oldest) {
+    for (const dog of dogs.values()) {
+      if (!oldest || dog.lastActivity < oldest.lastActivity) oldest = dog;
+    }
+  }
+  if (oldest) destroyDog(oldest);
+}
+
+// One-dog mode: every session maps to the same shared dog state. Session
+// argument is ignored on purpose so pending/correction events from any
+// session all drive the single mascot.
+const SOLO_KEY = 'solo';
+const pack = {
+  ensure(_sessionId, cwd) {
+    let state = dogs.get(SOLO_KEY);
+    if (state) {
+      if (cwd && cwd !== state.cwd) state.cwd = cwd;
+      return state;
+    }
+    return createDog(SOLO_KEY, { cwd });
+  },
+};
+
+// ── Single animation loop over all dogs ────────────────────
+let lastFrameTs = 0;
+function animationFrame(ts) {
+  if (!lastFrameTs) lastFrameTs = ts;
+  const deltaMs = ts - lastFrameTs;
+  lastFrameTs = ts;
+  const laneWidth = getLaneWidth();
+
+  // Step each dog.
+  for (const state of dogs.values()) {
+    const moving = ['walking', 'sniffing', 'zoomies-run'].includes(state.baseline);
+    if (moving) {
+      let speed = WALK_SPEED_PX_PER_SEC;
+      if (state.baseline === 'sniffing') speed = SNIFF_SPEED_PX_PER_SEC;
+      if (state.baseline === 'zoomies-run') speed = ZOOMIES_SPEED_PX_PER_SEC;
+      const delta = (speed * deltaMs) / 1000;
+
+      if (ts > state.turnCooldownUntil) {
+        if (state.facing === 'right') {
+          state.position += delta;
+          if (state.position >= laneWidth) {
+            state.position = laneWidth;
+            state.facing = 'left';
+            state.svgEl.dataset.facing = 'left';
+            state.turnCooldownUntil = ts + 200;
+          }
+        } else {
+          state.position -= delta;
+          if (state.position <= 0) {
+            state.position = 0;
+            state.facing = 'right';
+            state.svgEl.dataset.facing = 'right';
+            state.turnCooldownUntil = ts + 200;
+          }
+        }
+        state.posEl.style.transform = `translateX(${state.position}px)`;
+        updateSpotlight(state);
+      }
+
+      if (state.baseline === 'zoomies-run' && ts - state.lastDustAt > 200) {
+        emitDustPuff(state);
+        state.lastDustAt = ts;
+      }
+    }
+  }
+
+  // Proximity greetings.
+  if (dogs.size >= 2) {
+    const list = Array.from(dogs.values());
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i], b = list[j];
+        const distance = Math.abs(a.position - b.position);
+        if (distance < PROXIMITY_PX
+            && ts > a.proximityCooldownUntil
+            && ts > b.proximityCooldownUntil) {
+          a.proximityCooldownUntil = ts + PROXIMITY_COOLDOWN_MS;
+          b.proximityCooldownUntil = ts + PROXIMITY_COOLDOWN_MS;
+          // Face each other for 400ms, tail-wag via sitting.
+          const previousA = a.baseline, previousB = b.baseline;
+          const faceA = a.position <= b.position ? 'right' : 'left';
+          const faceB = faceA === 'right' ? 'left' : 'right';
+          a.facing = faceA; a.svgEl.dataset.facing = faceA;
+          b.facing = faceB; b.svgEl.dataset.facing = faceB;
+          setBaselineOn(a, 'sitting');
+          setBaselineOn(b, 'sitting');
+          // 5% mutual bark.
+          if (Math.random() < 0.05) {
+            playTransientOn(a, 'barking', 500);
+            playTransientOn(b, 'barking', 500);
+          }
+          setTimeout(() => {
+            if (!a.destroyed) {
+              const newFacing = a.facing === 'right' ? 'left' : 'right';
+              a.facing = newFacing;
+              a.svgEl.dataset.facing = newFacing;
+              setBaselineOn(a, previousA === 'zoomies-run' ? 'zoomies-run' : 'walking');
+            }
+            if (!b.destroyed) {
+              const newFacing = b.facing === 'right' ? 'left' : 'right';
+              b.facing = newFacing;
+              b.svgEl.dataset.facing = newFacing;
+              setBaselineOn(b, previousB === 'zoomies-run' ? 'zoomies-run' : 'walking');
+            }
+          }, 400);
+        }
+      }
+    }
+  }
+
+  requestAnimationFrame(animationFrame);
+}
+requestAnimationFrame(animationFrame);
+
+// Idle baseline transitions every 1s.
+setInterval(() => {
+  for (const state of dogs.values()) updateBaselineFromIdleFor(state);
+}, 1000);
+
+// Idle eviction every 60s — drop dogs idle > 15min (primary protected).
+setInterval(() => {
+  const now = Date.now();
+  for (const state of Array.from(dogs.values())) {
+    if (state.isPrimary) continue;
+    if (now - state.lastActivity > IDLE_EVICTION_MS) {
+      destroyDog(state, { stretch: true });
+    }
+  }
+}, 60000);
+
+// ── SSE hooks ─────────────────────────────────────────────
+window.__dogPending = function(data) {
+  const sessionId = data && data.session_id;
+  const cwd = (data && data.cwd) || '';
+  if (!sessionId) return;
+
+  if (!primarySessionId) {
+    primarySessionId = sessionId;
+    try { localStorage.setItem('grammarDashSessionId', sessionId); } catch (_) {}
+  }
+
+  const state = pack.ensure(sessionId, cwd);
+  state.lastActivity = Date.now();
+  state.wasWaiting = true;
+  playTransientOn(state, 'waiting', 45000);
+
+  // Pending chorus — when prompts land from multiple sessions at once, all
+  // waiting dogs bark in a staggered volley.
+  if (countWaitingDogs() >= PENDING_CHORUS_MIN_DOGS) {
+    let delay = 0;
+    for (const dog of dogs.values()) {
+      if (!dog.wasWaiting || dog.destroyed) continue;
+      setTimeout(() => {
+        if (!dog.destroyed) playTransientOn(dog, 'barking', 500);
+      }, delay);
+      delay += 180 + Math.random() * 140;
+    }
+  }
+};
+
+window.__dogCorrectionArrived = function(record) {
+  const sessionId = record && record.session_id;
+  const cwd = (record && record.cwd) || '';
+  if (!sessionId) return;
+
+  // Bootstrap primary session on first seen correction.
+  if (!primarySessionId) {
+    primarySessionId = sessionId;
+    try { localStorage.setItem('grammarDashSessionId', sessionId); } catch (_) {}
+  }
+
+  const state = pack.ensure(sessionId, cwd);
+  const now = Date.now();
+  const wasIdle = (now - state.lastEventAt) / 1000 > IDLE_BARK_GATE_SEC;
+  const comingFromWaiting = state.wasWaiting || state.transient === 'waiting';
+  state.wasWaiting = false;
+  state.lastEventAt = now;
+  state.lastActivity = now;
+  state.recentEvents.push(now);
+  state.recentEvents = state.recentEvents.filter(t => now - t < BURST_WINDOW_MS);
+
+  const changeCount = (record.corrections || []).length;
+  const heavy = changeCount >= ALERT_CHANGE_THRESHOLD;
+
+  const triggerBarkOrJump = () => {
+    if (wasIdle) {
+      playTransientOn(state, 'barking', 800);
+      const previous = state.svgEl.style.color;
+      state.svgEl.style.color = 'var(--add-fg)';
+      setTimeout(() => { state.svgEl.style.color = previous; }, 500);
+    } else {
+      playTransientOn(state, 'jumping', 500);
+    }
+  };
+
+  if (heavy) {
+    playTransientOn(state, 'alert', 1200);
+    setTimeout(triggerBarkOrJump, 1200);
+  } else if (comingFromWaiting) {
+    // Extra relief + celebration when transitioning out of waiting.
+    playTransientOn(state, 'spinning', 600);
+    setTimeout(triggerBarkOrJump, 620);
+  } else {
+    triggerBarkOrJump();
+  }
+
+  if (state.recentEvents.length >= BURST_SPIN_THRESHOLD && !comingFromWaiting) {
+    setTimeout(() => playTransientOn(state, 'spinning', 600), 1400);
+  }
+
+  // Hyper tier: dog is drowning in events — layer a spin+bark combo on top
+  // of the zoomies baseline so the animation actually looks frantic.
+  if (state.recentEvents.length >= HYPER_EVENT_THRESHOLD) {
+    setTimeout(() => {
+      if (state.destroyed) return;
+      playTransientOn(state, 'spinning', 600);
+      setTimeout(() => {
+        if (!state.destroyed) playTransientOn(state, 'barking', 500);
+      }, 650);
+    }, 1600);
+  }
+
+  updateBaselineFromIdleFor(state);
+};
+
+window.__dogDisconnected = function() {
+  const primary = getPrimaryDog();
+  if (primary) {
+    setBaselineOn(primary, 'sitting');
+    playTransientOn(primary, 'howling', 60000);
+  }
+  // Visitors howl with stagger.
+  let index = 0;
+  for (const state of dogs.values()) {
+    if (state.isPrimary) continue;
+    setTimeout(() => {
+      if (!state.destroyed) {
+        setBaselineOn(state, 'sitting');
+        playTransientOn(state, 'howling', 60000);
+      }
+    }, 200 * (++index));
+  }
+};
+
+window.__dogReconnected = function() {
+  for (const state of dogs.values()) {
+    playTransientOn(state, 'stretch', 1200);
+    setTimeout(() => {
+      if (state.destroyed) return;
+      playTransientOn(state, 'shake', 600);
+      setTimeout(() => setBaselineOn(state, 'walking'), 700);
+    }, 1250);
+  }
+};
+
+window.__dogReportGenerated = function(report) {
+  const primary = getPrimaryDog();
+  if (primary) {
+    playTransientOn(primary, 'beg', 1500);
+    setTimeout(() => playTransientOn(primary, 'barking', 800), 200);
+  }
+  let index = 0;
+  for (const state of dogs.values()) {
+    if (state.isPrimary) continue;
+    setTimeout(() => {
+      if (!state.destroyed) playTransientOn(state, 'jumping', 500);
+    }, 100 * (++index));
+  }
+};
+
+// ── Modal observer: pause primary baseline while modal open ─────
+const modalObserver = new MutationObserver(() => {
+  const primary = getPrimaryDog();
+  if (!primary) return;
+  const anyOpen = !!document.querySelector('.scrim.open');
+  if (anyOpen && previousBaselineBeforeModal === null) {
+    previousBaselineBeforeModal = primary.baseline;
+    setBaselineOn(primary, 'sitting');
+  } else if (!anyOpen && previousBaselineBeforeModal !== null) {
+    previousBaselineBeforeModal = null;
+    updateBaselineFromIdleFor(primary);
+  }
+});
+document.querySelectorAll('.scrim').forEach(el => {
+  modalObserver.observe(el, { attributes: true, attributeFilter: ['class'] });
+});
+
+// ── Konami: primary-only easter egg ────────────────────────
+const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+let konamiIndex = 0;
+document.addEventListener('keydown', (event) => {
+  const target = event.target;
+  if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+  const expected = KONAMI[konamiIndex];
+  if (event.key.toLowerCase() === expected.toLowerCase()) {
+    konamiIndex++;
+    if (konamiIndex === KONAMI.length) {
+      konamiIndex = 0;
+      const primary = getPrimaryDog();
+      if (!primary) return;
+      for (let i = 0; i < 10; i++) {
+        setTimeout(() => playTransientOn(primary, 'barking', 400), i * 200);
+      }
+      setTimeout(() => playTransientOn(primary, 'spinning', 600), 2200);
+    }
+  } else {
+    konamiIndex = 0;
+  }
+});
+
+// ── Midnight howl: primary-only ────────────────────────────
+let lastMidnightCheck = new Date();
+setInterval(() => {
+  const now = new Date();
+  if (now.getDate() !== lastMidnightCheck.getDate()) {
+    const primary = getPrimaryDog();
+    if (primary) playTransientOn(primary, 'howling', 3000);
+    moonIconEl.classList.remove('show');
+    void moonIconEl.offsetWidth;
+    moonIconEl.classList.add('show');
+    setTimeout(() => moonIconEl.classList.remove('show'), 3100);
+  }
+  lastMidnightCheck = now;
+}, 30000);
+
+// ── Debug globals — operate on primary dog ─────────────────
+window.playTransient = function(action, duration) {
+  const primary = getPrimaryDog();
+  if (primary) playTransientOn(primary, action, duration);
+};
+window.setDogBaseline = function(name) {
+  const primary = getPrimaryDog();
+  if (primary) setBaselineOn(primary, name);
+};
+window.__dogPack = { dogs, pack, getPrimaryDog };
+
+// ── SETTINGS MODAL ────────────────────────────────────────
+const scrim = document.getElementById('scrim');
+const cogBtn = document.getElementById('cog-button');
+const closeBtn = document.getElementById('modal-close');
+const cancelBtn = document.getElementById('modal-cancel');
+const saveBtn = document.getElementById('modal-save');
+
+const correctorSeg = document.getElementById('corrector-segments');
+const correctorDesc = document.getElementById('corrector-desc');
+const modalBody = document.getElementById('modal-body');
+const chatFormatSeg = document.getElementById('chat-format-segments');
+const themeSwatches = document.getElementById('theme-swatches');
+const keyStatusEl = document.getElementById('key-status');
+const apiKeyInput = document.getElementById('groq-api-key');
+const groqModelInput = document.getElementById('groq-model');
+const groqTimeoutInput = document.getElementById('groq-timeout');
+const claudeModelInput = document.getElementById('claude-model');
+const claudeTimeoutInput = document.getElementById('claude-timeout');
+const ltLangInput = document.getElementById('lt-language');
+const bypassInput = document.getElementById('bypass-marker');
+const sepInput = document.getElementById('separator');
+const minLenInput = document.getElementById('min-len');
+
+const CORRECTOR_DESCRIPTIONS = {
+  groq:         '⚡ Fast (~2s). Requires API key — free tier at console.groq.com.',
+  claude_cli:   '🏆 Best quality. Uses your Claude subscription — no API key.',
+  languagetool: '📖 Rule-based (no LLM). Free, ~20 req/min. Weak on tense.',
+};
+
+function applyCorrectorView(name) {
+  modalBody.dataset.corrector = name;
+  correctorDesc.textContent = CORRECTOR_DESCRIPTIONS[name] || '';
+}
+
+const THEME_DOT_COLORS = {
+  phosphor:      ['#ff5e6c', '#4eeb8e'],
+  amber:         ['#ff5470', '#ffb454'],
+  vapor:         ['#ff5fa2', '#6be8ff'],
+  mono:          ['#c9ccd4', '#f4f5f7'],
+  matrix:        ['#ff3333', '#00ff41'],
+  solarized:     ['#dc322f', '#b58900'],
+  dracula:       ['#ff5555', '#50fa7b'],
+  nord:          ['#bf616a', '#a3be8c'],
+  gruvbox:       ['#fb4934', '#b8bb26'],
+  synthwave:     ['#ff4090', '#00e0ff'],
+  'tokyo-night': ['#f7768e', '#9ece6a'],
+  catppuccin:    ['#f38ba8', '#a6e3a1'],
+  'github-dark': ['#f85149', '#3fb950'],
+  monokai:       ['#f92672', '#a6e22e'],
+  pink:          ['#ff4d7d', '#ff9ed6'],
+};
+
+const CHAT_FORMAT_LABELS = {
+  corrected:        'corrected only',
+  diff:             'diff',
+  'diff-annotated': 'diff annotated',
+  full:             'full (default)',
+  inline:           'inline',
+  annotated:        'annotated',
+};
+
+let currentSettings = null;
+let savedScrollY = 0;
+let wasNearBottomBeforeOpen = false;
+
+function applyChatFormat(formatName) {
+  document.body.dataset.chatFormat = formatName || 'full';
+}
+
+function applyTheme(themeName) {
+  document.body.dataset.theme = themeName || 'phosphor';
+}
+
+function openSettings() {
+  savedScrollY = window.scrollY;
+  wasNearBottomBeforeOpen = isScrolledNearBottom();
+  scrim.classList.add('open');
+  scrim.setAttribute('aria-hidden', 'false');
+  activateModalTab('corrector');
+  loadSettings();
+}
+
+function activateModalTab(name) {
+  document.querySelectorAll('.modal-tab').forEach((btn) => {
+    const match = btn.dataset.tab === name;
+    btn.classList.toggle('active', match);
+    btn.setAttribute('aria-selected', match ? 'true' : 'false');
+  });
+  document.querySelectorAll('.modal-tab-panel').forEach((panel) => {
+    panel.classList.toggle('active', panel.dataset.panel === name);
+  });
+}
+
+document.querySelectorAll('.modal-tab').forEach((btn) => {
+  btn.addEventListener('click', () => activateModalTab(btn.dataset.tab));
+});
+
+function closeSettings() {
+  scrim.classList.remove('open');
+  scrim.setAttribute('aria-hidden', 'true');
+  apiKeyInput.value = '';
+  // Restore scroll position. If the user was caught up with the latest card
+  // before opening the modal, jump to the new bottom (new cards may have
+  // streamed in while the modal was open). Otherwise restore the exact
+  // snapshot. requestAnimationFrame ensures layout has settled first.
+  const targetNearBottom = wasNearBottomBeforeOpen;
+  const snapshot = savedScrollY;
+  requestAnimationFrame(() => {
+    if (targetNearBottom) {
+      window.scrollTo(0, document.body.scrollHeight);
+    } else {
+      window.scrollTo(0, snapshot);
+    }
+  });
+}
+
+function renderCorrectorSegments(options, active) {
+  correctorSeg.innerHTML = '';
+  for (const option of options) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = option.replace('_', ' ');
+    btn.dataset.value = option;
+    if (option === active) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      [...correctorSeg.children].forEach(n => n.classList.remove('active'));
+      btn.classList.add('active');
+      applyCorrectorView(option);
+    });
+    correctorSeg.appendChild(btn);
+  }
+  applyCorrectorView(active);
+}
+
+function renderThemeSwatches(options, active) {
+  themeSwatches.innerHTML = '';
+  for (const name of options) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.value = name;
+    const [del, add] = THEME_DOT_COLORS[name] || ['#888', '#888'];
+    btn.innerHTML = `<span class="swatch-dots"><span style="background:${del}"></span><span style="background:${add}"></span></span>${name}`;
+    if (name === active) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      [...themeSwatches.children].forEach(n => n.classList.remove('active'));
+      btn.classList.add('active');
+      applyTheme(name);
+    });
+    themeSwatches.appendChild(btn);
+  }
+}
+
+function renderChatFormatSegments(options, active) {
+  chatFormatSeg.innerHTML = '';
+  for (const name of options) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.value = name;
+    btn.textContent = CHAT_FORMAT_LABELS[name] || name;
+    if (name === active) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      [...chatFormatSeg.children].forEach(n => n.classList.remove('active'));
+      btn.classList.add('active');
+      applyChatFormat(name);
+    });
+    chatFormatSeg.appendChild(btn);
+  }
+}
+
+function renderKeyStatus(env) {
+  keyStatusEl.className = 'key-status';
+  if (env.groq_key_present) {
+    keyStatusEl.classList.add('ok');
+    keyStatusEl.innerHTML = `<b>●</b> key set via ${escapeHtml(env.groq_key_source)} · ${escapeHtml(env.groq_key_masked)}`;
+  } else {
+    keyStatusEl.classList.add('missing');
+    keyStatusEl.innerHTML = `<b>●</b> no key set · groq corrector will fail until you add one`;
+  }
+}
+
+function renderTranslationTargetOptions(options, active) {
+  const select = document.getElementById('translation-target');
+  if (!select) return;
+  select.innerHTML = '';
+  for (const entry of options) {
+    const option = document.createElement('option');
+    option.value = entry.code;
+    option.textContent = entry.native ? `${entry.name} (${entry.native})` : entry.name;
+    if (entry.code === active) option.selected = true;
+    select.appendChild(option);
+  }
+}
+
+async function loadSettings() {
+  try {
+    const response = await fetch('/api/settings');
+    const data = await response.json();
+    currentSettings = data.settings;
+    renderCorrectorSegments(data.corrector_options, currentSettings.corrector);
+    renderThemeSwatches(data.theme_options, (currentSettings.ui || {}).theme || 'phosphor');
+    renderChatFormatSegments(data.chat_format_options || ['corrected','diff','diff-annotated','full','inline','annotated'], (currentSettings.ui || {}).chat_format || 'full');
+    renderKeyStatus(data.env);
+    groqModelInput.value = (currentSettings.groq || {}).model || '';
+    groqTimeoutInput.value = (currentSettings.groq || {}).timeout_seconds || 15;
+    claudeModelInput.value = (currentSettings.claude_cli || {}).model || '';
+    claudeTimeoutInput.value = (currentSettings.claude_cli || {}).timeout_seconds || 60;
+    ltLangInput.value = (currentSettings.languagetool || {}).language || '';
+    bypassInput.value = currentSettings.bypass_marker || '';
+    sepInput.value = currentSettings.separator || '';
+    minLenInput.value = currentSettings.min_natural_text_length || 10;
+    apiKeyInput.value = '';
+    const dogsEnabled = (currentSettings.ui || {}).dogs_enabled;
+    document.getElementById('dogs-enabled').checked = dogsEnabled !== false;
+    renderTranslationTargetOptions(
+      data.translation_languages || [],
+      (currentSettings.translation || {}).target_language || 'uk',
+    );
+    // Also update markers in the info modal so they stay in sync.
+    const sepMarker = document.getElementById('marker-sep');
+    const bypassMarker = document.getElementById('marker-bypass');
+    if (sepMarker) sepMarker.textContent = currentSettings.separator || ',,';
+    if (bypassMarker) bypassMarker.textContent = currentSettings.bypass_marker || '^^^';
+  } catch (error) {
+    toast('failed to load settings: ' + error.message, true);
+  }
+}
+
+function getActiveSegment(container) {
+  const active = container.querySelector('.active');
+  return active ? active.dataset.value : null;
+}
+
+async function saveSettings() {
+  const patch = {
+    corrector: getActiveSegment(correctorSeg),
+    ui: {
+      theme: getActiveSegment(themeSwatches) || 'phosphor',
+      chat_format: getActiveSegment(chatFormatSeg) || 'full',
+      dogs_enabled: document.getElementById('dogs-enabled').checked,
+    },
+    groq: {
+      model: groqModelInput.value.trim(),
+      timeout_seconds: parseInt(groqTimeoutInput.value, 10) || 15,
+    },
+    claude_cli: {
+      model: claudeModelInput.value.trim(),
+      timeout_seconds: parseInt(claudeTimeoutInput.value, 10) || 60,
+    },
+    languagetool: {
+      language: ltLangInput.value.trim() || 'en-US',
+    },
+    translation: {
+      target_language: document.getElementById('translation-target').value || 'uk',
+    },
+    bypass_marker: bypassInput.value,
+    separator: sepInput.value,
+    min_natural_text_length: parseInt(minLenInput.value, 10) || 10,
+  };
+
+  const body = { settings: patch };
+  const newKey = apiKeyInput.value.trim();
+  if (newKey) body.groq_api_key = newKey;
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'saving…';
+  try {
+    const response = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    currentSettings = data.settings;
+    applyTheme((currentSettings.ui || {}).theme);
+    applyDogsEnabled((currentSettings.ui || {}).dogs_enabled);
+    renderKeyStatus(data.env);
+    apiKeyInput.value = '';
+    if (typeof window.__refreshTranslateTarget === 'function') {
+      window.__refreshTranslateTarget();
+    }
+    toast('settings saved');
+    setTimeout(closeSettings, 400);
+  } catch (error) {
+    toast('save failed: ' + error.message, true);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'save';
+  }
+}
+
+function toast(message, isError) {
+  const node = document.createElement('div');
+  node.className = 'toast' + (isError ? ' error' : '');
+  node.textContent = message;
+  document.body.appendChild(node);
+  setTimeout(() => node.remove(), 2200);
+}
+
+cogBtn.addEventListener('click', openSettings);
+closeBtn.addEventListener('click', closeSettings);
+cancelBtn.addEventListener('click', closeSettings);
+saveBtn.addEventListener('click', saveSettings);
+scrim.addEventListener('click', (event) => { if (event.target === scrim) closeSettings(); });
+
+// ── INFO MODAL ─────────────────────────────────────────
+const infoScrim = document.getElementById('info-scrim');
+const infoBtn = document.getElementById('info-button');
+const infoClose = document.getElementById('info-close');
+const infoOk = document.getElementById('info-ok');
+
+function formatBytes(n) {
+  if (n == null) return '—';
+  if (n < 1024) return n + ' B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  if (n < 1024 * 1024 * 1024) return (n / (1024 * 1024)).toFixed(1) + ' MB';
+  return (n / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    const diffDays = Math.floor((Date.now() - d.getTime()) / 86400000);
+    const dateStr = d.toISOString().slice(0, 10);
+    return `${dateStr} (${diffDays}d ago)`;
+  } catch (_) { return iso; }
+}
+
+async function refreshDbStats() {
+  try {
+    const response = await fetch('/api/db/stats');
+    const stats = await response.json();
+    document.getElementById('db-size').textContent = formatBytes(stats.db_size_bytes);
+    document.getElementById('db-prompts').textContent = (stats.prompt_count || 0).toLocaleString();
+    document.getElementById('db-corrections').textContent = (stats.correction_count || 0).toLocaleString();
+    document.getElementById('db-reports').textContent = (stats.report_count || 0).toLocaleString();
+    document.getElementById('db-oldest').textContent = formatDate(stats.oldest_prompt);
+  } catch (error) { console.error('db stats failed', error); }
+}
+
+document.getElementById('cleanup-segments').addEventListener('click', async (event) => {
+  const target = event.target.closest('button[data-days]');
+  if (!target) return;
+  const days = parseInt(target.dataset.days, 10);
+  const label = target.textContent;
+  if (!confirm(`Delete all prompts older than ${label}? This cannot be undone.`)) return;
+
+  const buttons = document.querySelectorAll('#cleanup-segments button');
+  buttons.forEach((b) => { b.disabled = true; });
+  try {
+    const response = await fetch('/api/db/cleanup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ before_days: days }),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    toast(`deleted ${data.deleted} prompts`);
+    await refreshDbStats();
+    await seedStatsFromDb();
+  } catch (error) {
+    toast('cleanup failed: ' + error.message, true);
+  } finally {
+    buttons.forEach((b) => { b.disabled = false; });
+  }
+});
+
+function openInfo() {
+  infoScrim.classList.add('open');
+  infoScrim.setAttribute('aria-hidden', 'false');
+  refreshDbStats();
+}
+function closeInfo() {
+  infoScrim.classList.remove('open');
+  infoScrim.setAttribute('aria-hidden', 'true');
+}
+
+infoBtn.addEventListener('click', openInfo);
+infoClose.addEventListener('click', closeInfo);
+infoOk.addEventListener('click', closeInfo);
+infoScrim.addEventListener('click', (event) => { if (event.target === infoScrim) closeInfo(); });
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  if (scrim.classList.contains('open')) closeSettings();
+  else if (infoScrim.classList.contains('open')) closeInfo();
+});
+
+// ── SERVER CONTROLS ───────────────────────────────────
+const shutdownBtn = document.getElementById('server-shutdown-btn');
+const restartBtn = document.getElementById('server-restart-btn');
+
+function showOfflineBanner(message) {
+  let banner = document.getElementById('offline-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'offline-banner';
+    banner.className = 'offline-banner';
+    document.body.appendChild(banner);
+  }
+  banner.textContent = message;
+}
+
+async function pollHealth(attempts, intervalMs) {
+  for (let i = 0; i < attempts; i++) {
+    await new Promise((r) => setTimeout(r, intervalMs));
+    try {
+      const response = await fetch('/health', { cache: 'no-store' });
+      if (response.ok) return true;
+    } catch (_) { /* keep polling */ }
+  }
+  return false;
+}
+
+shutdownBtn.addEventListener('click', async () => {
+  if (!confirm('Shut down the grammar dashboard server? The hook will stop writing corrections until you restart Claude Code.')) return;
+  shutdownBtn.disabled = true;
+  restartBtn.disabled = true;
+  toast('server shutting down…');
+  try {
+    await fetch('/api/server/shutdown', { method: 'POST' });
+  } catch (_) { /* expected — server dies */ }
+  setTimeout(async () => {
+    const alive = await pollHealth(1, 0);
+    if (!alive) showOfflineBanner("server offline — reload page once it's back up");
+  }, 800);
+});
+
+restartBtn.addEventListener('click', async () => {
+  shutdownBtn.disabled = true;
+  restartBtn.disabled = true;
+  toast('restarting…');
+  try {
+    await fetch('/api/server/restart', { method: 'POST' });
+  } catch (_) { /* expected */ }
+  setTimeout(async () => {
+    const alive = await pollHealth(20, 500);
+    if (alive) {
+      window.location.reload();
+    } else {
+      showOfflineBanner("server offline — reload page once it's back up");
+    }
+  }, 800);
+});
+
+function applyDogsEnabled(enabled) {
+  const on = enabled !== false;
+  document.body.dataset.dogsEnabled = on ? 'true' : 'false';
+  if (on && typeof pack !== 'undefined') {
+    try { pack.ensure(SOLO_KEY, ''); } catch (_) {}
+  }
+}
+
+// Apply initial theme + chat format + dogs before corrections render (no FOUC)
+(async () => {
+  try {
+    const response = await fetch('/api/settings');
+    const data = await response.json();
+    applyTheme((data.settings.ui || {}).theme);
+    applyChatFormat((data.settings.ui || {}).chat_format);
+    applyDogsEnabled((data.settings.ui || {}).dogs_enabled);
+  } catch (e) { /* best effort */ }
+})();
+
+// ── Translation (English ↔ configurable second language) ─────────────
+// Direction is auto-detected by scanning for non-ASCII codepoints — any
+// char above 127 means the input is in the configured target language.
+// Submission is MANUAL: hitting Enter fires the request. On focus, we
+// show the recent-translations list so the user can re-open past lookups
+// with a click.
+(() => {
+  const input = document.getElementById('translate-input');
+  const panel = document.getElementById('translate-panel');
+  const langEl = document.getElementById('translate-lang');
+  if (!input || !panel || !langEl) return;
+
+  let targetLang = 'uk';
+  let targetName = 'Ukrainian';
+
+  const escapeHtml = (value) =>
+    String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+  const detectDirection = (text) => {
+    if (!text.trim()) return '';
+    for (const ch of text) {
+      if (ch.charCodeAt(0) > 127) return `${targetLang}→en`;
+    }
+    return `en→${targetLang}`;
+  };
+
+  const updateLang = () => {
+    const dir = detectDirection(input.value);
+    langEl.dataset.dir = dir;
+    langEl.textContent = dir || `en ↔ ${targetLang}`;
+  };
+
+  const updateTargetLanguage = (code, name) => {
+    targetLang = (code || 'uk').toLowerCase();
+    targetName = name || targetLang.toUpperCase();
+    input.placeholder = `translate en ↔ ${targetLang}`;
+    input.title = `type a word in English or ${targetName}, press Enter to translate`;
+    updateLang();
+  };
+
+  const showPanel = (html) => {
+    panel.innerHTML = html;
+    panel.dataset.visible = 'true';
+  };
+  const hidePanel = () => {
+    panel.dataset.visible = 'false';
+    panel.innerHTML = '';
+  };
+
+  const renderResult = (result) => {
+    const dirLabel = `${result.source_lang} → ${result.target_lang}`.toUpperCase();
+    const synonyms = (result.synonyms || [])
+      .map((s) => `<span class="tr-synonym">${escapeHtml(s)}</span>`)
+      .join('');
+    const examples = (result.examples || [])
+      .map((example) => {
+        const src = escapeHtml(example.source || '');
+        const tgt = escapeHtml(example.target || '');
+        return `<div class="tr-example"><span class="ex-source">${src}</span><br><span class="ex-target">${tgt}</span></div>`;
+      })
+      .join('');
+
+    const synonymsBlock = synonyms
+      ? `<div class="tr-section"><div class="tr-section-label">synonyms</div><div class="tr-synonyms">${synonyms}</div></div>`
+      : '';
+    const examplesBlock = examples
+      ? `<div class="tr-section"><div class="tr-section-label">examples</div><div class="tr-examples">${examples}</div></div>`
+      : '';
+    const notesBlock = result.notes
+      ? `<div class="tr-section"><div class="tr-section-label">note</div><div class="tr-notes">${escapeHtml(result.notes)}</div></div>`
+      : '';
+
+    const sourceLine = escapeHtml(result.source_text || input.value.trim());
+    const metaParts = [];
+    if (result.cached) metaParts.push('cached');
+    if (result.model) metaParts.push(escapeHtml(result.model));
+    if (result.hit_count && result.hit_count > 1) metaParts.push(`${result.hit_count}×`);
+    const meta = metaParts.length
+      ? `<div class="tr-meta"><span>${metaParts.join(' · ')}</span></div>`
+      : '';
+
+    showPanel(
+      `<div class="tr-head">` +
+        `<span class="tr-source">${sourceLine}</span>` +
+        `<span class="tr-dir">${escapeHtml(dirLabel)}</span>` +
+      `</div>` +
+      `<div class="tr-main">${escapeHtml(result.translation || '—')}</div>` +
+      synonymsBlock +
+      examplesBlock +
+      notesBlock +
+      meta
+    );
+  };
+
+  const renderError = (message) => {
+    showPanel(`<div class="tr-error">${escapeHtml(message)}</div>`);
+  };
+
+  const renderRecents = (items) => {
+    if (!items || !items.length) {
+      showPanel(
+        '<div class="tr-empty">no translations yet — type a word and press Enter.</div>' +
+        '<div class="tr-hint">press <kbd>Enter</kbd> to translate · <kbd>Esc</kbd> to close</div>'
+      );
+      return;
+    }
+    const rows = items.slice(0, 12).map((item) => {
+      const dir = `${item.source_lang}→${item.target_lang}`.toUpperCase();
+      return (
+        `<li class="tr-recent-item" data-source="${escapeHtml(item.source_text)}">` +
+          `<span class="rec-source">${escapeHtml(item.source_text)}</span>` +
+          `<span class="rec-arrow">→</span>` +
+          `<span class="rec-target">${escapeHtml(item.translation)}</span>` +
+          `<span class="rec-dir">${escapeHtml(dir)}</span>` +
+        `</li>`
+      );
+    }).join('');
+    showPanel(
+      '<div class="tr-recent-header">recent translations</div>' +
+      `<ul class="tr-recent-list">${rows}</ul>` +
+      '<div class="tr-hint">click a row to re-open · <kbd>Enter</kbd> to translate current input</div>'
+    );
+  };
+
+  let pendingController = null;
+
+  const runTranslation = async () => {
+    const text = input.value.trim();
+    if (!text) {
+      hidePanel();
+      return;
+    }
+
+    if (pendingController) pendingController.abort();
+    pendingController = new AbortController();
+    input.dataset.loading = 'true';
+    showPanel('<div class="tr-empty">translating…</div>');
+
+    try {
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+        signal: pendingController.signal,
+      });
+      const payload = await response.json();
+      if (!payload.ok) {
+        renderError(payload.error || 'translation failed');
+        return;
+      }
+      renderResult(payload.result);
+    } catch (error) {
+      if (error.name === 'AbortError') return;
+      renderError(error.message || 'network error');
+    } finally {
+      input.dataset.loading = 'false';
+    }
+  };
+
+  const loadRecents = async () => {
+    try {
+      const response = await fetch('/api/translations/recent?limit=12');
+      if (!response.ok) return;
+      const payload = await response.json();
+      renderRecents(payload.translations || []);
+    } catch (_) {
+      renderRecents([]);
+    }
+  };
+
+  input.addEventListener('input', updateLang);
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      runTranslation();
+    } else if (event.key === 'Escape') {
+      input.value = '';
+      updateLang();
+      hidePanel();
+      input.blur();
+    }
+  });
+
+  input.addEventListener('focus', () => {
+    // Empty input → show recents; populated input keeps whatever's in the
+    // panel (a result, error, or nothing yet).
+    if (!input.value.trim()) {
+      loadRecents();
+    } else if (panel.innerHTML) {
+      panel.dataset.visible = 'true';
+    }
+  });
+
+  panel.addEventListener('click', (event) => {
+    const item = event.target.closest('.tr-recent-item');
+    if (!item) return;
+    const source = item.dataset.source || '';
+    input.value = source;
+    updateLang();
+    runTranslation();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!input.contains(event.target) && !panel.contains(event.target)) {
+      panel.dataset.visible = 'false';
+    }
+  });
+
+  const applySettings = async () => {
+    try {
+      const response = await fetch('/api/settings');
+      const data = await response.json();
+      const code = (data.settings.translation || {}).target_language || 'uk';
+      const match = (data.translation_languages || []).find((lang) => lang.code === code);
+      updateTargetLanguage(code, match ? match.name : null);
+    } catch (_) {
+      updateTargetLanguage('uk', 'Ukrainian');
+    }
+  };
+
+  // Expose so the settings modal can nudge us after save.
+  window.__refreshTranslateTarget = applySettings;
+
+  applySettings();
+})();
+
+// ── Update checker ────────────────────────────────────────────────────
+// Fetches /api/update/check which reads the configured manifest_url. If the
+// remote manifest's version is newer than VERSION, show a small "update"
+// pill in the header linking to the download / changelog URL.
+(() => {
+  const pill = document.getElementById('update-pill');
+  const brand = document.getElementById('brand');
+  if (!pill || !brand) return;
+
+  const renderStatus = (status) => {
+    if (!status || !status.update_available) {
+      pill.dataset.visible = 'false';
+      return;
+    }
+    const manifest = status.manifest || {};
+    const href =
+      manifest.download_url ||
+      manifest.changelog_url ||
+      manifest.release_url ||
+      '#';
+    pill.href = href;
+    pill.dataset.visible = 'true';
+    const releaseNotes = (manifest.release_notes || '').slice(0, 240);
+    pill.title =
+      `Update available: ${status.latest} (you have ${status.current})` +
+      (releaseNotes ? `\n\n${releaseNotes}` : '') +
+      '\n\nClick to open upgrade instructions.';
+    brand.title = `grammar hook · v${status.current} (update to ${status.latest} available)`;
+  };
+
+  const seedBrandTitle = async () => {
+    try {
+      const response = await fetch('/api/version');
+      const payload = await response.json();
+      if (payload && payload.version) {
+        brand.title = `grammar hook · v${payload.version}`;
+      }
+    } catch (_) { /* noop */ }
+  };
+
+  const fetchStatus = async (force = false) => {
+    try {
+      const url = force ? '/api/update/check?force=1' : '/api/update/check';
+      const response = await fetch(url);
+      if (!response.ok) return;
+      const status = await response.json();
+      renderStatus(status);
+    } catch (_) { /* best effort */ }
+  };
+
+  seedBrandTitle();
+  fetchStatus();
+  // Re-check every 6h while the dashboard is open. The server caches the
+  // result per `check_interval_hours`, so this is a no-op most of the time.
+  setInterval(() => fetchStatus(false), 6 * 60 * 60 * 1000);
+})();
+</script>
+</body>
+</html>

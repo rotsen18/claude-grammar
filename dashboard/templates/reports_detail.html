@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>grammar · report</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #08090b;
+    --surface: #0e1013;
+    --surface-hi: #14171c;
+    --line: #1b1e25;
+    --line-soft: #141720;
+    --text: #e4e6ea;
+    --text-dim: #9397a0;
+    --text-fade: #54585f;
+    --text-mute: #373a42;
+    --del-fg: #ff5e6c;
+    --add-fg: #4eeb8e;
+    --add-bg: rgba(78, 235, 142, 0.085);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-feature-settings: "ss02", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    position: sticky; top: 0;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    background: rgba(8, 9, 11, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    z-index: 10;
+  }
+  .brand {
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .brand::before {
+    content: "▚ ";
+    color: var(--add-fg);
+    font-weight: 400;
+    margin-right: 1px;
+  }
+  .sep { color: var(--text-mute); }
+  .breadcrumb {
+    color: var(--text-fade);
+    text-decoration: none;
+    font-size: 11px;
+  }
+  .breadcrumb:hover { color: var(--text); }
+  .spacer { margin-left: auto; }
+
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    width: 22px; height: 22px;
+    padding: 0;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .icon-btn:hover { color: var(--add-fg); border-color: var(--add-fg); }
+  .icon-btn svg { width: 12px; height: 12px; }
+
+  main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+
+  .report-header {
+    border-bottom: 1px solid var(--line-soft);
+    padding-bottom: 16px;
+    margin-bottom: 22px;
+  }
+  .report-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    line-height: 1.3;
+    color: var(--text);
+  }
+  .report-meta {
+    font-size: 11px;
+    color: var(--text-fade);
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+  }
+  .report-meta .key { color: var(--text-dim); }
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    padding: 6px 14px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .btn.primary {
+    background: var(--add-bg);
+    border-color: var(--add-fg);
+    color: var(--add-fg);
+  }
+  .btn.del {
+    color: var(--del-fg);
+    border-color: rgba(255, 94, 108, 0.35);
+  }
+  .btn.del:hover { border-color: var(--del-fg); background: rgba(255, 94, 108, 0.08); }
+
+  .prose {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+  .prose h1, .prose h2, .prose h3 {
+    color: var(--text);
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    margin-top: 1.8em;
+    margin-bottom: 0.6em;
+  }
+  .prose h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--add-fg);
+    border-bottom: 1px dashed var(--line);
+    padding-bottom: 6px;
+  }
+  .prose h3 {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .prose p { margin: 0.7em 0; color: var(--text); }
+  .prose ul, .prose ol { padding-left: 22px; margin: 0.7em 0; }
+  .prose li { margin: 0.25em 0; }
+  .prose strong { color: var(--text); font-weight: 700; }
+  .prose em { color: var(--text-dim); }
+  .prose a { color: var(--add-fg); text-decoration: none; border-bottom: 1px dotted var(--add-fg); }
+  .prose a:hover { color: var(--text); border-bottom-color: var(--text); }
+  .prose code {
+    background: var(--surface-hi);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0 5px;
+    font-size: 12.5px;
+    color: var(--add-fg);
+  }
+  .prose pre {
+    background: var(--surface-hi);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    font-size: 12.5px;
+  }
+  .prose pre code { background: transparent; border: 0; padding: 0; color: var(--text); }
+  .prose blockquote {
+    margin: 0.8em 0;
+    padding: 8px 14px;
+    background: var(--surface-hi);
+    border-left: 2px solid var(--add-fg);
+    border-radius: 0 3px 3px 0;
+    color: var(--text-dim);
+  }
+  .prose blockquote p { margin: 0.3em 0; }
+  .prose hr {
+    border: 0;
+    border-top: 1px dashed var(--line);
+    margin: 1.5em 0;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-hi);
+    border: 1px solid var(--add-fg);
+    color: var(--add-fg);
+    padding: 7px 14px;
+    font-size: 11px;
+    border-radius: 4px;
+    z-index: 200;
+  }
+  .toast.error { border-color: var(--del-fg); color: var(--del-fg); }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="icon-btn" href="/" aria-label="log" title="back to log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+  </a>
+  <span class="brand">grammar</span>
+  <span class="sep">│</span>
+  <a class="breadcrumb" href="/reports">← all reports</a>
+  <div class="spacer"></div>
+  <a class="icon-btn" href="/reports" aria-label="reports list" title="reports list">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="8" y1="13" x2="16" y2="13"/>
+      <line x1="8" y1="17" x2="16" y2="17"/>
+      <line x1="8" y1="9" x2="10" y2="9"/>
+    </svg>
+  </a>
+</header>
+
+<main>
+  <div class="report-header">
+    <h1 class="report-title" id="report-title">loading…</h1>
+    <div class="report-meta" id="report-meta"></div>
+    <div class="actions">
+      <button class="btn primary" id="copy-btn">copy markdown</button>
+      <button class="btn del" id="delete-btn">delete</button>
+    </div>
+  </div>
+  <article class="prose" id="prose"></article>
+</main>
+
+<script>
+const REPORT_ID = {{ report_id }};
+const titleEl = document.getElementById('report-title');
+const metaEl = document.getElementById('report-meta');
+const proseEl = document.getElementById('prose');
+const copyBtn = document.getElementById('copy-btn');
+const deleteBtn = document.getElementById('delete-btn');
+
+let reportData = null;
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function toast(message, isError) {
+  const node = document.createElement('div');
+  node.className = 'toast' + (isError ? ' error' : '');
+  node.textContent = message;
+  document.body.appendChild(node);
+  setTimeout(() => node.remove(), 2400);
+}
+
+function formatWhen(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString();
+}
+
+function rangeLabelFor(range) {
+  return {
+    daily: 'last 24h',
+    weekly: 'last 7d',
+    monthly: 'last 30d',
+    since_last: 'since last report',
+    all_time: 'all time',
+  }[range] || range;
+}
+
+async function load() {
+  try {
+    const response = await fetch(`/api/reports/${REPORT_ID}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    reportData = await response.json();
+    titleEl.textContent = reportData.title;
+    metaEl.innerHTML = `
+      <span class="key">created</span> ${escapeHtml(formatWhen(reportData.created_at))} ·
+      <span class="key">range</span> ${escapeHtml(rangeLabelFor(reportData.time_range))} ·
+      <span class="key">prompts</span> ${reportData.prompt_count} ·
+      <span class="key">corrections</span> ${reportData.correction_count} ·
+      <span class="key">model</span> ${escapeHtml(reportData.model || 'unknown')}
+    `;
+    proseEl.innerHTML = marked.parse(reportData.content_markdown || '');
+  } catch (error) {
+    titleEl.textContent = 'Failed to load report';
+    toast('load failed: ' + error.message, true);
+  }
+}
+
+copyBtn.addEventListener('click', async () => {
+  if (!reportData) return;
+  try {
+    await navigator.clipboard.writeText(reportData.content_markdown || '');
+    toast('copied!');
+  } catch (error) {
+    toast('copy failed: ' + error.message, true);
+  }
+});
+
+deleteBtn.addEventListener('click', async () => {
+  try {
+    await fetch(`/api/reports/${REPORT_ID}`, { method: 'DELETE' });
+    window.location.href = '/reports';
+  } catch (error) {
+    toast('delete failed: ' + error.message, true);
+  }
+});
+
+load();
+</script>
+</body>
+</html>

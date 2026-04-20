@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>grammar · logs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #08090b;
+    --surface: #0e1013;
+    --surface-hi: #14171c;
+    --line: #1b1e25;
+    --line-soft: #141720;
+    --text: #e4e6ea;
+    --text-dim: #9397a0;
+    --text-fade: #54585f;
+    --text-mute: #373a42;
+    --del-fg: #ff5e6c;
+    --del-bg: rgba(255, 94, 108, 0.09);
+    --add-fg: #4eeb8e;
+    --add-bg: rgba(78, 235, 142, 0.085);
+    --warn-fg: #f5c451;
+    --info-fg: #5fb6e8;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-feature-settings: "ss02", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; pointer-events: none;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0 / 100% 28px,
+      radial-gradient(ellipse at top, rgba(78, 235, 142, 0.025), transparent 60%);
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  header {
+    position: sticky; top: 0;
+    height: 32px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 12px;
+    background: rgba(8, 9, 11, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    z-index: 10;
+  }
+  .brand {
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .brand::before {
+    content: "▚ ";
+    color: var(--add-fg);
+    font-weight: 400;
+  }
+  .sep { color: var(--text-mute); }
+  .meta { color: var(--text-fade); font-size: 10.5px; }
+  .controls { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    width: 22px; height: 22px;
+    padding: 0;
+    border-radius: 4px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .icon-btn:hover { color: var(--add-fg); border-color: var(--add-fg); }
+  .icon-btn svg { width: 12px; height: 12px; }
+
+  .btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    padding: 4px 10px;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .btn.del { color: var(--del-fg); border-color: rgba(255, 94, 108, 0.35); }
+  .btn.del:hover { background: rgba(255, 94, 108, 0.08); border-color: var(--del-fg); }
+
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 14px 14px 32px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface);
+    margin-bottom: 12px;
+    font-size: 11px;
+  }
+  .toolbar label { color: var(--text-fade); text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; }
+  .toolbar input[type="text"], .toolbar input[type="number"], .toolbar select {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--line);
+    padding: 4px 7px;
+    font-family: inherit;
+    font-size: 11px;
+    border-radius: 3px;
+    outline: none;
+  }
+  .toolbar input[type="text"] { min-width: 180px; flex: 1; }
+  .toolbar input:focus, .toolbar select:focus { border-color: var(--add-fg); }
+  .toolbar .check { display: flex; gap: 5px; align-items: center; color: var(--text-dim); }
+
+  .log-path {
+    font-size: 10.5px;
+    color: var(--text-fade);
+    margin-bottom: 8px;
+    padding-left: 2px;
+  }
+  .log-path::before { content: "» "; color: var(--text-mute); }
+
+  pre.log {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 11.5px;
+    line-height: 1.55;
+    white-space: pre;
+    overflow-x: auto;
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    color: var(--text-dim);
+  }
+  pre.log .line.level-ERROR { color: var(--del-fg); }
+  pre.log .line.level-WARNING { color: var(--warn-fg); }
+  pre.log .line.level-INFO { color: var(--info-fg); }
+  pre.log .line.level-DEBUG { color: var(--text-fade); }
+  pre.log .line.hidden { display: none; }
+
+  .empty {
+    color: var(--text-fade);
+    padding: 20px 12px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .empty::before { content: "» "; color: var(--text-mute); }
+
+  .toast {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-hi);
+    border: 1px solid var(--add-fg);
+    color: var(--add-fg);
+    padding: 7px 14px;
+    font-size: 11px;
+    border-radius: 4px;
+    z-index: 200;
+  }
+  .toast.error { border-color: var(--del-fg); color: var(--del-fg); }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="icon-btn" href="/" aria-label="back to log" title="back to log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+  </a>
+  <span class="brand">grammar</span>
+  <span class="sep">│</span>
+  <span class="meta">hook.log</span>
+  <div class="controls">
+    <span class="meta" id="status">—</span>
+    <button class="btn" id="copy-btn" title="copy all log text to clipboard">copy</button>
+    <button class="btn" id="download-btn" title="download log as .txt">download</button>
+    <button class="btn" id="share-btn" title="copy visible logs with header for sharing">share</button>
+    <button class="btn" id="refresh-btn">refresh</button>
+    <button class="btn del" id="clear-btn">clear</button>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <label>lines</label>
+    <select id="lines-select">
+      <option value="100">100</option>
+      <option value="200" selected>200</option>
+      <option value="500">500</option>
+      <option value="1000">1000</option>
+      <option value="5000">5000</option>
+    </select>
+    <label>filter</label>
+    <select id="level-select">
+      <option value="">all</option>
+      <option value="DEBUG">DEBUG+</option>
+      <option value="INFO">INFO+</option>
+      <option value="WARNING">WARNING+</option>
+      <option value="ERROR">ERROR</option>
+    </select>
+    <label>search</label>
+    <input type="text" id="search" placeholder="substring (case-insensitive)" />
+    <span class="check">
+      <input type="checkbox" id="auto-refresh" checked />
+      <span>auto-refresh 3s</span>
+    </span>
+    <span class="check">
+      <input type="checkbox" id="auto-scroll" checked />
+      <span>stick to bottom</span>
+    </span>
+  </div>
+
+  <div class="log-path" id="log-path">—</div>
+  <pre class="log" id="log"></pre>
+  <div id="empty" class="empty" style="display: none;">Log file is empty.</div>
+</main>
+
+<script>
+const logEl = document.getElementById('log');
+const emptyEl = document.getElementById('empty');
+const statusEl = document.getElementById('status');
+const pathEl = document.getElementById('log-path');
+const linesSel = document.getElementById('lines-select');
+const levelSel = document.getElementById('level-select');
+const searchEl = document.getElementById('search');
+const autoRefreshEl = document.getElementById('auto-refresh');
+const autoScrollEl = document.getElementById('auto-scroll');
+const refreshBtn = document.getElementById('refresh-btn');
+const clearBtn = document.getElementById('clear-btn');
+const copyBtn = document.getElementById('copy-btn');
+const downloadBtn = document.getElementById('download-btn');
+const shareBtn = document.getElementById('share-btn');
+
+const LEVEL_ORDER = { DEBUG: 10, INFO: 20, WARNING: 30, ERROR: 40 };
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function detectLevel(line) {
+  const match = line.match(/\[(DEBUG|INFO|WARNING|ERROR|CRITICAL)\]/);
+  return match ? (match[1] === 'CRITICAL' ? 'ERROR' : match[1]) : null;
+}
+
+function toast(message, isError) {
+  const node = document.createElement('div');
+  node.className = 'toast' + (isError ? ' error' : '');
+  node.textContent = message;
+  document.body.appendChild(node);
+  setTimeout(() => node.remove(), 2200);
+}
+
+function render(content) {
+  logEl.innerHTML = '';
+  if (!content) {
+    emptyEl.style.display = '';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  const minLevel = levelSel.value;
+  const minLevelN = minLevel ? LEVEL_ORDER[minLevel] : 0;
+  const needle = searchEl.value.trim().toLowerCase();
+
+  let lastLevel = null;
+  const fragment = document.createDocumentFragment();
+  const lines = content.split('\n');
+  for (const rawLine of lines) {
+    if (rawLine === '') continue;
+    const level = detectLevel(rawLine) || lastLevel;
+    if (level) lastLevel = level;
+
+    const effectiveLevel = level || 'DEBUG';
+    const levelN = LEVEL_ORDER[effectiveLevel] || 0;
+
+    let hide = false;
+    if (minLevelN && levelN < minLevelN) hide = true;
+    if (needle && rawLine.toLowerCase().indexOf(needle) === -1) hide = true;
+
+    const span = document.createElement('span');
+    span.className = 'line level-' + effectiveLevel + (hide ? ' hidden' : '');
+    span.textContent = rawLine + '\n';
+    fragment.appendChild(span);
+  }
+  logEl.appendChild(fragment);
+
+  if (autoScrollEl.checked) {
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+}
+
+let lastContent = '';
+async function fetchLogs() {
+  try {
+    const response = await fetch(`/api/logs?lines=${encodeURIComponent(linesSel.value)}`);
+    const data = await response.json();
+    pathEl.textContent = data.path;
+    statusEl.textContent = data.exists ? `${(data.content || '').split('\n').length - 1} lines` : 'no file';
+    if (data.content !== lastContent) {
+      lastContent = data.content || '';
+      render(lastContent);
+    }
+  } catch (error) {
+    statusEl.textContent = 'error';
+    toast('fetch failed: ' + error.message, true);
+  }
+}
+
+refreshBtn.addEventListener('click', fetchLogs);
+linesSel.addEventListener('change', fetchLogs);
+levelSel.addEventListener('change', () => render(lastContent));
+searchEl.addEventListener('input', () => render(lastContent));
+
+clearBtn.addEventListener('click', async () => {
+  if (!confirm('Clear hook.log?')) return;
+  try {
+    const response = await fetch('/api/logs', { method: 'DELETE' });
+    const data = await response.json();
+    if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    toast('cleared');
+    lastContent = '';
+    render('');
+  } catch (error) {
+    toast('clear failed: ' + error.message, true);
+  }
+});
+
+let timer = null;
+function applyAutoRefresh() {
+  if (timer) clearInterval(timer);
+  if (autoRefreshEl.checked) timer = setInterval(fetchLogs, 3000);
+}
+autoRefreshEl.addEventListener('change', applyAutoRefresh);
+
+function visibleLogText() {
+  return Array.from(logEl.querySelectorAll('.line:not(.hidden)'))
+    .map((node) => node.textContent)
+    .join('');
+}
+
+async function copyToClipboard(text, successMessage) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(successMessage);
+  } catch (error) {
+    toast('copy failed: ' + error.message, true);
+  }
+}
+
+copyBtn.addEventListener('click', () => {
+  if (!lastContent) { toast('nothing to copy', true); return; }
+  copyToClipboard(lastContent, `copied ${lastContent.length} chars`);
+});
+
+shareBtn.addEventListener('click', () => {
+  const visible = visibleLogText();
+  if (!visible) { toast('nothing visible', true); return; }
+  const header = [
+    `# grammar hook log`,
+    `# path: ${pathEl.textContent}`,
+    `# filter: level=${levelSel.value || 'all'} search=${searchEl.value || '(none)'}`,
+    `# captured: ${new Date().toISOString()}`,
+    ``,
+  ].join('\n');
+  copyToClipboard(header + visible, `copied filtered view`);
+});
+
+downloadBtn.addEventListener('click', () => {
+  if (!lastContent) { toast('nothing to download', true); return; }
+  const blob = new Blob([lastContent], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  anchor.href = url;
+  anchor.download = `grammar-hook-${stamp}.log`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+});
+
+// Mark errors as read on first visit so the header badge clears.
+fetch('/api/logs/errors/ack', { method: 'POST' }).catch(() => { /* swallow */ });
+
+fetchLogs();
+applyAutoRefresh();
+</script>
+</body>
+</html>

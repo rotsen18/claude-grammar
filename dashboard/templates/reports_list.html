@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>grammar · reports</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #08090b;
+    --surface: #0e1013;
+    --surface-hi: #14171c;
+    --line: #1b1e25;
+    --line-soft: #141720;
+    --text: #e4e6ea;
+    --text-dim: #9397a0;
+    --text-fade: #54585f;
+    --text-mute: #373a42;
+    --del-fg: #ff5e6c;
+    --del-bg: rgba(255, 94, 108, 0.09);
+    --add-fg: #4eeb8e;
+    --add-bg: rgba(78, 235, 142, 0.085);
+    --arrow: #54585f;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-feature-settings: "ss02", "cv11";
+    font-variant-ligatures: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0 / 100% 28px,
+      radial-gradient(ellipse at top, rgba(78, 235, 142, 0.025), transparent 60%);
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  header {
+    position: sticky; top: 0;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    background: rgba(8, 9, 11, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    z-index: 10;
+  }
+  .brand {
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .brand::before {
+    content: "▚ ";
+    color: var(--add-fg);
+    font-weight: 400;
+    margin-right: 1px;
+  }
+  .sep { color: var(--text-mute); }
+  .stats {
+    display: flex; gap: 12px;
+    margin-left: auto;
+    color: var(--text-dim);
+  }
+  .stat-num { color: var(--text); font-weight: 600; }
+  .stat-label { color: var(--text-fade); }
+
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    width: 22px; height: 22px;
+    padding: 0;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .icon-btn:hover { color: var(--add-fg); border-color: var(--add-fg); }
+  .icon-btn svg { width: 12px; height: 12px; }
+
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px 48px;
+  }
+
+  .page-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin: 0 0 14px;
+  }
+
+  .generate-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .generate-bar .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-fade);
+    font-weight: 600;
+  }
+  .segments {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    flex: 1;
+    min-width: 260px;
+  }
+  .segments button {
+    flex: 1;
+    background: transparent;
+    color: var(--text-dim);
+    border: 0;
+    border-right: 1px solid var(--line);
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+  .segments button:last-child { border-right: 0; }
+  .segments button:hover { background: var(--surface-hi); color: var(--text); }
+  .segments button.active { background: var(--add-bg); color: var(--add-fg); }
+
+  .btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    padding: 6px 14px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .btn.primary {
+    background: var(--add-bg);
+    border-color: var(--add-fg);
+    color: var(--add-fg);
+  }
+  .btn.primary:hover { background: rgba(78, 235, 142, 0.15); }
+  .btn[disabled] { opacity: 0.6; cursor: wait; }
+
+  .report-row {
+    display: grid;
+    grid-template-columns: 14px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line-soft);
+    transition: background 0.12s;
+  }
+  .report-row:hover { background: var(--surface); }
+  .unread-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: transparent;
+    margin-top: 6px;
+  }
+  .unread-dot.unread {
+    background: var(--add-fg);
+    box-shadow: 0 0 6px var(--add-fg);
+  }
+  .report-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+    display: block;
+    line-height: 1.35;
+  }
+  .report-title:hover { color: var(--add-fg); }
+  .report-meta {
+    font-size: 10.5px;
+    color: var(--text-fade);
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+  .report-meta .corr {
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .report-actions {
+    display: flex;
+    gap: 6px;
+  }
+  .report-actions .btn {
+    padding: 4px 10px;
+    font-size: 10px;
+  }
+  .report-actions .btn.del {
+    color: var(--del-fg);
+    border-color: rgba(255, 94, 108, 0.35);
+  }
+  .report-actions .btn.del:hover { border-color: var(--del-fg); background: rgba(255, 94, 108, 0.08); }
+
+  .empty {
+    color: var(--text-fade);
+    font-size: 12px;
+    padding: 24px 14px;
+    text-align: left;
+  }
+  .empty::before { content: "» "; color: var(--text-mute); }
+
+  .toast {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-hi);
+    border: 1px solid var(--add-fg);
+    color: var(--add-fg);
+    padding: 7px 14px;
+    font-size: 11px;
+    border-radius: 4px;
+    z-index: 200;
+  }
+  .toast.error { border-color: var(--del-fg); color: var(--del-fg); }
+
+  .generating-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8, 9, 11, 0.78);
+    backdrop-filter: blur(3px);
+    z-index: 150;
+  }
+  .generating-overlay.open { display: flex; }
+  .generating-box {
+    background: var(--surface);
+    border: 1px solid var(--add-fg);
+    border-radius: 5px;
+    padding: 20px 28px;
+    font-size: 12px;
+    color: var(--add-fg);
+    letter-spacing: 0.06em;
+  }
+  .generating-box::before {
+    content: "█";
+    margin-right: 8px;
+    animation: blink 1.1s steps(2, start) infinite;
+  }
+  @keyframes blink { to { visibility: hidden; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="icon-btn" href="/" aria-label="back to log" title="back to log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+  </a>
+  <span class="brand">grammar</span>
+  <span class="sep">│</span>
+  <span style="color: var(--text-fade); font-size: 10.5px;">reports</span>
+  <div class="stats">
+    <span><span class="stat-num" id="stat-count">0</span> <span class="stat-label">reports</span></span>
+    <span><span class="stat-label">last</span> <span class="stat-num" id="stat-last">—</span></span>
+    <span><span class="stat-num" id="stat-unread">0</span> <span class="stat-label">unread</span></span>
+  </div>
+</header>
+
+<main>
+  <h1 class="page-title">grammar study reports</h1>
+
+  <div class="generate-bar">
+    <span class="label">range</span>
+    <div class="segments" id="range-segments">
+      <button data-value="daily" class="active">daily</button>
+      <button data-value="weekly">weekly</button>
+      <button data-value="monthly">monthly</button>
+      <button data-value="since_last">since last</button>
+      <button data-value="all_time">all time</button>
+    </div>
+    <button class="btn primary" id="generate-btn">Generate report</button>
+  </div>
+
+  <div id="list"></div>
+  <div id="empty" class="empty" style="display: none;">No reports yet. Generate your first one above.</div>
+</main>
+
+<div class="generating-overlay" id="generating-overlay">
+  <div class="generating-box" id="generating-box">generating… (~30s)</div>
+</div>
+
+<script>
+const listEl = document.getElementById('list');
+const emptyEl = document.getElementById('empty');
+const generateBtn = document.getElementById('generate-btn');
+const rangeSegments = document.getElementById('range-segments');
+const overlay = document.getElementById('generating-overlay');
+const statCount = document.getElementById('stat-count');
+const statLast = document.getElementById('stat-last');
+const statUnread = document.getElementById('stat-unread');
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function toast(message, isError) {
+  const node = document.createElement('div');
+  node.className = 'toast' + (isError ? ' error' : '');
+  node.textContent = message;
+  document.body.appendChild(node);
+  setTimeout(() => node.remove(), 2400);
+}
+
+function formatRelative(iso) {
+  if (!iso) return '—';
+  const then = new Date(iso).getTime();
+  const diff = (Date.now() - then) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 86400 * 30) return `${Math.floor(diff / 86400)}d ago`;
+  return new Date(iso).toISOString().slice(0, 10);
+}
+
+function formatRange(range) {
+  return String(range || '').replace(/_/g, ' ');
+}
+
+function rangeLabelFor(range) {
+  return {
+    daily: 'last 24h',
+    weekly: 'last 7d',
+    monthly: 'last 30d',
+    since_last: 'since last report',
+    all_time: 'all time',
+  }[range] || range;
+}
+
+function renderReports(reports) {
+  listEl.innerHTML = '';
+  if (!reports.length) {
+    emptyEl.style.display = '';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  for (const report of reports) {
+    const row = document.createElement('div');
+    row.className = 'report-row';
+    const unread = !report.viewed_at;
+    row.innerHTML = `
+      <span class="unread-dot ${unread ? 'unread' : ''}" title="${unread ? 'unread' : 'viewed'}"></span>
+      <div>
+        <a class="report-title" href="/reports/${report.id}">${escapeHtml(report.title)}</a>
+        <div class="report-meta">
+          ${escapeHtml(formatRelative(report.created_at))} ·
+          ${escapeHtml(rangeLabelFor(report.time_range))} ·
+          ${report.prompt_count} prompts ·
+          ${report.correction_count} corrections
+        </div>
+      </div>
+      <div class="report-actions">
+        <button class="btn copy-btn" data-id="${report.id}">copy</button>
+        <button class="btn del" data-id="${report.id}">delete</button>
+      </div>
+    `;
+    listEl.appendChild(row);
+  }
+
+  listEl.querySelectorAll('.copy-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      try {
+        const response = await fetch(`/api/reports/${id}`);
+        const data = await response.json();
+        await navigator.clipboard.writeText(data.content_markdown || '');
+        toast('copied!');
+      } catch (error) {
+        toast('copy failed: ' + error.message, true);
+      }
+    });
+  });
+  listEl.querySelectorAll('.del').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      try {
+        await fetch(`/api/reports/${id}`, { method: 'DELETE' });
+        toast('deleted');
+        loadReports();
+      } catch (error) {
+        toast('delete failed: ' + error.message, true);
+      }
+    });
+  });
+}
+
+function renderStats(reports) {
+  statCount.textContent = reports.length;
+  const unread = reports.filter((r) => !r.viewed_at).length;
+  statUnread.textContent = unread;
+  statLast.textContent = reports.length ? formatRelative(reports[0].created_at) : '—';
+}
+
+async function loadReports() {
+  try {
+    const response = await fetch('/api/reports');
+    const reports = await response.json();
+    renderStats(reports);
+    renderReports(reports);
+  } catch (error) {
+    toast('failed to load reports: ' + error.message, true);
+  }
+}
+
+rangeSegments.addEventListener('click', (event) => {
+  const target = event.target.closest('button[data-value]');
+  if (!target) return;
+  [...rangeSegments.children].forEach((n) => n.classList.remove('active'));
+  target.classList.add('active');
+});
+
+function getActiveRange() {
+  const active = rangeSegments.querySelector('.active');
+  return active ? active.dataset.value : 'daily';
+}
+
+generateBtn.addEventListener('click', async () => {
+  const range = getActiveRange();
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'generating… (~30s)';
+  overlay.classList.add('open');
+  try {
+    const response = await fetch('/api/reports/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ time_range: range }),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || `HTTP ${response.status}`);
+    }
+    window.location.href = data.url;
+  } catch (error) {
+    overlay.classList.remove('open');
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'Generate report';
+    toast('generate failed: ' + error.message, true);
+  }
+});
+
+loadReports();
+</script>
+</body>
+</html>
