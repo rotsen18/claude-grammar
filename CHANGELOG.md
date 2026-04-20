@@ -9,6 +9,8 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+## [0.3.6] — 2026-04-20
+
 ### Added
 - Installed version now shown in the dashboard header next to the brand
   (e.g. `▚ GRAMMAR v0.3.5`). Previously only available as a hover tooltip.
