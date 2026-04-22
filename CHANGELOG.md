@@ -9,6 +9,8 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+## [0.4.2] — 2026-04-22
+
 ### Added
 - **`rules` chat format.** New display mode that hides the original and
   corrected text rows entirely and shows only the per-correction list —
