@@ -9,6 +9,27 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+### Added
+- **`rules` chat format.** New display mode that hides the original and
+  corrected text rows entirely and shows only the per-correction list —
+  category, `original → replacement` arrow, and the short explanation. For
+  learners who skim corrected paragraphs without absorbing the lesson; the
+  rule-plus-why format is what actually teaches. Pick it from Settings →
+  UI → Chat format.
+- **Info tab in settings.** Runtime introspection — version, URL,
+  host:port, install dir, data dir, .env file, GitHub repo — plus a
+  **check for updates** button that polls GitHub releases on demand. An
+  amber **DEV** pill appears next to the version in the header whenever
+  the dashboard is running against a `CLAUDE_GRAMMAR_DATA_DIR` override,
+  so it's obvious which DB the UI is reading from.
+
+### Changed
+- **Long corrections no longer dominate the card.** Whole-sentence
+  rewrites (`clarity` / `word_order`) over 80 characters now render with
+  a middle-ellipsis in the changes list; hover to see the full span. Keeps
+  the rules view scannable when a single correction would otherwise take
+  up half the card.
+
 ## [0.4.1] — 2026-04-22
 
 ### Fixed

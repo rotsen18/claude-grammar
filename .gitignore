@@ -12,6 +12,9 @@ __pycache__/
 # Runtime data — never commit. Lives at ~/.claude/hooks/grammar/data/ when installed.
 data/
 
+# Dev dashboard DB snapshot — see CLAUDE.md "Development guide".
+dev-data/
+
 # Secrets
 .env
 .env.*

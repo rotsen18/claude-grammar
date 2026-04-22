@@ -276,6 +276,26 @@
     margin-left: 2px;
   }
   .brand-version:empty { display: none; }
+
+  /* dev pill — only rendered when the dashboard is running against a
+     CLAUDE_GRAMMAR_DATA_DIR override. Meant to catch the "wait, which
+     server am I looking at?" moment. */
+  .dev-pill {
+    display: none;
+    align-items: center;
+    padding: 2px 8px;
+    margin-left: 8px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--cat-spelling, #ffb454) 20%, transparent);
+    border: 1px solid var(--cat-spelling, #ffb454);
+    color: var(--cat-spelling, #ffb454);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: help;
+  }
+  .dev-pill.visible { display: inline-flex; }
   .update-pill {
     display: none;
     align-items: center;
@@ -834,6 +854,14 @@
   body[data-chat-format="annotated"] .card .changes,
   body[data-chat-format="annotated"] .card .row.inline-line { display: none; }
 
+  /* rules: only the changes list — rule + arrow + short explanation.
+     Built for skim-readers who want the lesson, not the rewritten text. */
+  body[data-chat-format="rules"] .card .row.orig,
+  body[data-chat-format="rules"] .card .row.corr,
+  body[data-chat-format="rules"] .card .row.diff-annotated,
+  body[data-chat-format="rules"] .card .row.inline-line,
+  body[data-chat-format="rules"] .card .row.annotated-line { display: none; }
+
   /* changes list */
   .changes {
     margin-top: 6px;
@@ -869,6 +897,12 @@
   .pair .del { color: var(--del-fg); opacity: 0.85; }
   .pair .ar  { color: var(--arrow); margin: 0 5px; }
   .pair .add { color: var(--add-fg); font-weight: 500; }
+  .pair .truncated { cursor: help; }
+  .pair .truncated .ellipsis {
+    color: var(--text-fade);
+    padding: 0 2px;
+    font-weight: 400;
+  }
   .exp {
     grid-column: 2;
     color: var(--text-fade);
@@ -1643,12 +1677,13 @@
 
   .segments {
     display: flex;
+    flex-wrap: wrap;
     border: 1px solid var(--line);
     border-radius: 4px;
     overflow: hidden;
   }
   .segments button {
-    flex: 1;
+    flex: 1 1 70px;
     background: transparent;
     color: var(--text-dim);
     border: 0;
@@ -1826,6 +1861,62 @@
   .modal-tab-panel { display: none; }
   .modal-tab-panel.active { display: block; }
 
+  /* info tab — runtime introspection (settings modal, not the about modal) */
+  .info-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .info-rows .info-row {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 10px;
+    align-items: baseline;
+    font-size: 12px;
+  }
+  .info-rows .info-row .k {
+    color: var(--text-fade);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 10px;
+  }
+  .info-rows .info-row .v {
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+  .info-rows .info-row .v.mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11.5px;
+    color: var(--text-dim);
+  }
+  .info-dev-badge {
+    margin: 0 0 14px;
+    padding: 8px 10px;
+    border: 1px solid var(--add-fg);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--add-fg) 10%, transparent);
+    color: var(--add-fg);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .info-dev-badge code {
+    font-size: 10.5px;
+    padding: 0 4px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--add-fg) 18%, transparent);
+  }
+  .update-check-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  .update-check-row .field-hint {
+    margin: 0;
+    flex: 1;
+  }
+
   /* Filters tab */
   .category-grid {
     display: grid;
@@ -1985,6 +2076,7 @@
 <header>
   <span class="brand" id="brand" title="grammar hook">grammar</span>
   <span class="brand-version" id="brand-version" title="installed version"></span>
+  <span class="dev-pill" id="dev-pill" title="">dev</span>
   <button
     class="update-pill"
     id="update-pill"
@@ -2078,6 +2170,7 @@
         <button type="button" class="modal-tab" data-tab="appearance" role="tab" aria-selected="false">appearance</button>
         <button type="button" class="modal-tab" data-tab="filters" role="tab" aria-selected="false">filters</button>
         <button type="button" class="modal-tab" data-tab="general" role="tab" aria-selected="false">general</button>
+        <button type="button" class="modal-tab" data-tab="info" role="tab" aria-selected="false">info</button>
       </div>
 
       <div class="modal-tab-panel active" data-panel="corrector" role="tabpanel">
@@ -2195,6 +2288,25 @@
           <span class="field-label">min natural text length</span>
           <input class="text" id="min-len" type="number" min="1" max="500" />
           <span class="field-hint">prompts with less natural text are skipped (e.g. "ok", "yes").</span>
+        </div>
+      </div>
+
+      <div class="modal-tab-panel" data-panel="info" role="tabpanel">
+        <div class="info-rows" id="settings-info-rows">
+          <div class="info-row"><span class="k">version</span><span class="v" id="info-version">—</span></div>
+          <div class="info-row"><span class="k">url</span><span class="v mono" id="info-url">—</span></div>
+          <div class="info-row"><span class="k">host:port</span><span class="v mono" id="info-hostport">—</span></div>
+          <div class="info-row"><span class="k">install dir</span><span class="v mono" id="info-install">—</span></div>
+          <div class="info-row"><span class="k">data dir</span><span class="v mono" id="info-datadir">—</span></div>
+          <div class="info-row"><span class="k">.env file</span><span class="v mono" id="info-envfile">—</span></div>
+          <div class="info-row"><span class="k">github repo</span><span class="v mono" id="info-repo">—</span></div>
+        </div>
+        <div class="info-dev-badge" id="info-dev-badge" hidden>
+          running against a dev data dir (<code>CLAUDE_GRAMMAR_DATA_DIR</code>) — changes here do not touch the installed DB.
+        </div>
+        <div class="field update-check-row">
+          <button type="button" class="btn" id="info-check-updates">check for updates</button>
+          <span class="field-hint" id="info-update-status">click to poll GitHub releases right now.</span>
         </div>
       </div>
 
@@ -2389,6 +2501,22 @@ function escapeHtml(text) {
     .replace(/'/g, '&#39;');
 }
 
+// Middle-ellipsis truncation for long correction spans in the changes list.
+// Whole-sentence rewrites (clarity / word_order) would otherwise dominate the
+// card; truncating keeps rules-mode scannable. Full text stays on hover.
+const PAIR_TRUNCATE_LIMIT = 80;
+const PAIR_TRUNCATE_KEEP = 35;
+
+function renderTruncatedSpan(raw, cls) {
+  const safeClass = cls === 'del' ? 'del' : 'add';
+  if (raw.length <= PAIR_TRUNCATE_LIMIT) {
+    return `<span class="${safeClass}">${escapeHtml(raw)}</span>`;
+  }
+  const head = raw.slice(0, PAIR_TRUNCATE_KEEP).trimEnd();
+  const tail = raw.slice(-PAIR_TRUNCATE_KEEP).trimStart();
+  return `<span class="${safeClass} truncated" title="${escapeHtml(raw)}">${escapeHtml(head)}<span class="ellipsis">…</span>${escapeHtml(tail)}</span>`;
+}
+
 // Token-level LCS diff: highlights every differing whitespace-separated
 // token between `original` and `corrected`. Used by the plain `diff` format.
 function wordDiff(original, corrected, side) {
@@ -2496,10 +2624,14 @@ function renderCard(record) {
   const changesHtml = corrections.map((correction) => {
     const key = categoryKey(correction);
     const catInfo = CATEGORY[key];
+    const originalRaw = correction.original || '∅';
+    const replacementRaw = correction.replacement || '∅';
+    const delHtml = renderTruncatedSpan(originalRaw, 'del');
+    const addHtml = renderTruncatedSpan(replacementRaw, 'add');
     return `
       <div class="change" style="--cat: var(--cat-${key})">
         <span class="cat" title="${escapeHtml(catInfo.label)}">${catInfo.code}</span>
-        <span class="pair"><span class="del">${escapeHtml(correction.original || '∅')}</span><span class="ar">→</span><span class="add">${escapeHtml(correction.replacement || '∅')}</span></span>
+        <span class="pair">${delHtml}<span class="ar">→</span>${addHtml}</span>
         <span class="exp">${escapeHtml(correction.message || '')}</span>
       </div>`;
   }).join('');
@@ -3718,12 +3850,13 @@ const THEME_DOT_COLORS = {
 };
 
 const CHAT_FORMAT_LABELS = {
-  corrected:        'corrected only',
+  corrected:        'corrected',
   diff:             'diff',
   'diff-annotated': 'diff annotated',
-  full:             'full (default)',
+  full:             'full',
   inline:           'inline',
   annotated:        'annotated',
+  rules:            'rules',
 };
 
 let currentSettings = null;
@@ -3756,7 +3889,51 @@ function activateModalTab(name) {
   document.querySelectorAll('.modal-tab-panel').forEach((panel) => {
     panel.classList.toggle('active', panel.dataset.panel === name);
   });
+  if (name === 'info') loadInfoPanel();
 }
+
+async function loadInfoPanel() {
+  try {
+    const res = await fetch('/api/info');
+    if (!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+    document.getElementById('info-version').textContent = data.version || '—';
+    document.getElementById('info-url').textContent = data.url || '—';
+    document.getElementById('info-hostport').textContent = `${data.host}:${data.port}`;
+    document.getElementById('info-install').textContent = data.install_dir || '—';
+    document.getElementById('info-datadir').textContent = data.data_dir || '—';
+    document.getElementById('info-envfile').textContent = data.env_file || '—';
+    document.getElementById('info-repo').textContent = data.github_repo || '(not set)';
+    const devBadge = document.getElementById('info-dev-badge');
+    devBadge.hidden = !data.data_dir_overridden;
+  } catch (err) {
+    console.error('info fetch failed', err);
+  }
+}
+
+async function runUpdateCheck() {
+  const btn = document.getElementById('info-check-updates');
+  const status = document.getElementById('info-update-status');
+  btn.disabled = true;
+  status.textContent = 'checking…';
+  try {
+    const res = await fetch('/api/update/check?force=1');
+    const data = await res.json();
+    if (data.update_available) {
+      status.innerHTML = `update available: <b>${data.latest}</b> — open the pill in the header to install.`;
+    } else if (data.latest) {
+      status.textContent = `up to date (latest: ${data.latest}).`;
+    } else {
+      status.textContent = data.error ? `check failed: ${data.error}` : 'no update info returned.';
+    }
+  } catch (err) {
+    status.textContent = `check failed: ${err.message || err}`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('info-check-updates').addEventListener('click', runUpdateCheck);
 
 document.querySelectorAll('.modal-tab').forEach((btn) => {
   btn.addEventListener('click', () => activateModalTab(btn.dataset.tab));
@@ -3906,7 +4083,7 @@ async function loadSettings() {
     currentSettings = data.settings;
     renderCorrectorSegments(data.corrector_options, currentSettings.corrector);
     renderThemeSwatches(data.theme_options, (currentSettings.ui || {}).theme || 'phosphor');
-    renderChatFormatSegments(data.chat_format_options || ['corrected','diff','diff-annotated','full','inline','annotated'], (currentSettings.ui || {}).chat_format || 'full');
+    renderChatFormatSegments(data.chat_format_options || ['corrected','diff','diff-annotated','full','inline','annotated','rules'], (currentSettings.ui || {}).chat_format || 'full');
     renderKeyStatus(data.env);
     groqModelInput.value = (currentSettings.groq || {}).model || '';
     groqTimeoutInput.value = (currentSettings.groq || {}).timeout_seconds || 15;
@@ -4494,12 +4671,22 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
 
   const seedBrandTitle = async () => {
     try {
-      const response = await fetch('/api/version');
+      const response = await fetch('/api/info');
       const payload = await response.json();
       if (payload && payload.version) {
         brand.title = `grammar hook · v${payload.version}`;
         const versionEl = document.getElementById('brand-version');
         if (versionEl) versionEl.textContent = `v${payload.version}`;
+      }
+      const devPill = document.getElementById('dev-pill');
+      if (devPill) {
+        if (payload && payload.data_dir_overridden) {
+          devPill.classList.add('visible');
+          devPill.title = `dev mode — reading from ${payload.data_dir}`;
+        } else {
+          devPill.classList.remove('visible');
+          devPill.title = '';
+        }
       }
     } catch (_) { /* noop */ }
   };

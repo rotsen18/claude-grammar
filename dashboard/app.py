@@ -267,7 +267,7 @@ THEME_OPTIONS = [
     "monokai",
     "pink",
 ]
-CHAT_FORMAT_OPTIONS = ["corrected", "diff", "diff-annotated", "full", "inline", "annotated"]
+CHAT_FORMAT_OPTIONS = ["corrected", "diff", "diff-annotated", "full", "inline", "annotated", "rules"]
 
 app = Flask(__name__)
 
@@ -582,6 +582,29 @@ def api_logs_error_count() -> Response:
 @app.route("/api/version", methods=["GET"])
 def api_version() -> Response:
     return jsonify({"version": get_version()})
+
+
+@app.route("/api/info", methods=["GET"])
+def api_info() -> Response:
+    """Runtime introspection — version, URL, install dir, data dir. Powers
+    the settings → info panel so developers running the dev dashboard can
+    see at a glance which code and which DB snapshot are in play."""
+    install_dir = Path(__file__).resolve().parent.parent
+    settings = _load_effective_settings()
+    update_cfg = settings.get("update") or {}
+    return jsonify(
+        {
+            "version": get_version(),
+            "url": f"http://{DASHBOARD_HOST}:{DASHBOARD_PORT}",
+            "host": DASHBOARD_HOST,
+            "port": DASHBOARD_PORT,
+            "install_dir": str(install_dir),
+            "data_dir": str(DATA_DIR),
+            "env_file": str(ENV_FILE),
+            "data_dir_overridden": bool(os.environ.get("CLAUDE_GRAMMAR_DATA_DIR", "").strip()),
+            "github_repo": (update_cfg.get("github_repo") or "").strip(),
+        }
+    )
 
 
 @app.route("/api/update/check", methods=["GET", "POST"])
