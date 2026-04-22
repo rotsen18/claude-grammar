@@ -6,23 +6,76 @@ Developer guide for the grammar correction hook. The user-facing overview
 This file captures the architecture, the invariants you must not regress,
 and the non-obvious gotchas that aren't visible from reading the code.
 
-## Dev vs. installed
+## Development guide
 
-The source of truth is this repo. The **installed** location is always
-`~/.claude/hooks/grammar/` — a subset of this tree copied there by
-`install.sh`, with runtime state (`data/`, `.env`, `.venv/`) living on
-that side only.
+The source of truth is this repo. The **installed** copy at
+`~/.claude/hooks/grammar/` is whatever `install.sh` last produced —
+runtime state (`data/`, `.env`, `.venv/`) lives only there. Two ways to
+iterate, depending on what you need to test.
 
-Typical dev loop:
+### Recommended: run the dashboard from the repo against a DB snapshot
+
+Point a repo-local dev process at an isolated data directory with
+`CLAUDE_GRAMMAR_DATA_DIR` and work against a snapshot of real data.
+Nothing the dev process does touches `~/.claude/hooks/grammar/data/`, so
+you can break things freely and roll back by deleting `./dev-data/`.
 
 ```bash
-# make changes here (this repo)
+# stop the installed dashboard to free port 3333
+curl -X POST http://127.0.0.1:3333/api/server/shutdown
+
+# one-time: snapshot the prod DB
+mkdir -p ./dev-data
+cp ~/.claude/hooks/grammar/data/corrections.db ./dev-data/
+
+# run the dashboard from the repo against that copy
+CLAUDE_GRAMMAR_DATA_DIR=./dev-data uv run --project . python -m dashboard.app
+```
+
+Refresh the snapshot with another `cp` whenever you want newer data. To
+return to normal, stop the dev process and re-launch Claude Code — the
+SessionStart hook brings the installed dashboard back up.
+
+This covers anything observable through the dashboard — UI, settings,
+reports, translations, correctors reached via `/api/…` endpoints. The one
+thing it does NOT cover is the hook entry flow from Claude Code itself,
+because `~/.claude/settings.json` still points at the installed copy.
+
+### When you actually need to exercise the hook path
+
+For changes to `grammar_fix.py`, `server_check.py`, parser behavior, or
+the `UserPromptSubmit` dedupe path, you need to reinstall so Claude Code
+invokes your updated code:
+
+```bash
 bash install.sh                                         # copy → ~/.claude/hooks/grammar/
 curl -X POST http://127.0.0.1:3333/api/server/restart   # reload dashboard
 ```
 
 Flask caches Jinja templates, so edits to `dashboard/templates/*.html`
-need that restart — browser reload alone won't pick them up.
+always need that restart — browser reload alone won't pick them up.
+
+### Running commands
+
+Everything runs under `uv`. Stay in the repo root — the entry scripts
+(`grammar_fix.py`, `server_check.py`) and subpackages (`grammar/`,
+`correctors/`, `dashboard/`) assume the project root is on `sys.path`.
+
+```bash
+uv sync --project .                                         # install deps
+uv run --project . python -m dashboard.app                  # run dashboard manually
+uv run --project . python -c "from grammar import storage"  # ad-hoc smoke tests
+```
+
+No formal test suite. Verify changes with inline `uv run python -c`
+invocations or by hitting the running dashboard's HTTP endpoints.
+
+### Dev-tool noise to ignore
+
+Pyright reports unresolved imports for `config`, `storage`, `settings`,
+`flask`, `requests`, etc. — it can't see the uv-managed venv. These are
+noise, not bugs; don't try to "fix" them by adding sys.path shims or pip
+installs.
 
 ## How it works (runtime flow)
 
@@ -82,22 +135,6 @@ claude-grammar/
 ├── get.sh                     # curl-able bootstrap (fetches latest release, runs install.sh)
 └── VERSION                    # plain-text version, source of truth for releases
 ```
-
-## Commands
-
-Everything runs under `uv`. Stay in the repo root — the entry scripts
-(`grammar_fix.py`, `server_check.py`) and subpackages (`grammar/`,
-`correctors/`, `dashboard/`) assume the project root is on `sys.path`.
-
-```bash
-uv sync --project .                                           # install deps
-uv run --project . python -m dashboard.app                    # run dashboard manually
-uv run --project . python -c "from grammar import storage"   # ad-hoc smoke tests
-curl -X POST http://127.0.0.1:3333/api/server/restart         # reload after code edits
-```
-
-No formal test suite. Verify changes with inline `uv run python -c`
-invocations or by hitting the running dashboard's HTTP endpoints.
 
 ## Hard invariants — do not regress
 
@@ -314,10 +351,25 @@ right away via the update pill or `curl /api/update/check?force=1`.
 Guardrails: the workflow fails fast if `## [Unreleased]` is empty, or if
 `VERSION` isn't strict `X.Y.Z`.
 
+**After every release, pull + rebase before your next commit.** The
+workflow pushes a `Release vX.Y.Z` commit and a `vX.Y.Z` tag to `main`
+as `github-actions[bot]`, so your local `main` is instantly behind. Any
+work-in-progress you had queued must be rebased on top:
+
+```bash
+git pull --rebase origin main
+```
+
+If you skip this and try to push, git rejects the push as non-fast-forward.
+Expect one CHANGELOG merge hazard: the workflow inserts a new
+`## [X.Y.Z] — <date>` header directly below `## [Unreleased]`, so any
+bullets you had already added under `[Unreleased]` will look like they
+belong to the just-cut release after the rebase. Move them back under
+`[Unreleased]` before amending, otherwise the next release will skip
+them.
+
 ## Known rough edges
 
-- Pyright reports unresolved imports for `config`, `storage`, `settings`,
-  `flask`, etc. — pyright can't see the uv-managed venv. Noise, not bugs.
 - The legacy Groq-quota endpoint (`/api/groq/quota`) and its JSON file on
   disk are still populated on every request but no UI consumes them.
   Intentionally kept for ad-hoc queries.

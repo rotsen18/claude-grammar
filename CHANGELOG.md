@@ -9,6 +9,30 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+### Added
+- **Filters tab in settings modal.** Two new knobs for quieting the
+  corrector: an **excluded categories** checkbox grid (e.g. skip
+  capitalization fixes in casual chat) and a **preserved tokens** list
+  (chat shorthand like `ur`, `urs`, `4` that should never be rewritten).
+  Enforced in two stages — the system prompt tells the model to honor
+  them, and a post-filter drops any corrections that slip through.
+  Settings live under `filters.excluded_categories` and
+  `filters.preserved_tokens` in the DB; all three correctors respect
+  them. LanguageTool additionally hands mapped categories to its native
+  `disabledCategories` API param so matching rules are skipped
+  server-side.
+- `CLAUDE_GRAMMAR_DATA_DIR` env override in `grammar/config.py`. Lets a
+  repo-local dev dashboard run against a snapshot of the prod DB
+  (`cp ~/.claude/hooks/grammar/data/corrections.db ./dev-data/`) without
+  touching the real data directory. Documented as the recommended dev
+  workflow in `CLAUDE.md`.
+
+### Changed
+- Translate input in the dashboard header lost its redundant
+  `EN ↔ UK` hint label — direction is auto-detected and only shown in
+  the result panel now. Placeholder simplified from `translate en ↔ uk`
+  to just `translate`.
+
 ## [0.3.6] — 2026-04-20
 
 ### Added

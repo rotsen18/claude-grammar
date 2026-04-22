@@ -27,7 +27,15 @@ def _load_env_file() -> None:
 _load_env_file()
 
 
-DATA_DIR = Path("~/.claude/hooks/grammar/data").expanduser()
+# Default to the installed location. Override with CLAUDE_GRAMMAR_DATA_DIR to
+# point a dev run at a different SQLite file — typically a copy of the prod
+# DB for experimenting without touching real data.
+_DATA_DIR_OVERRIDE = os.environ.get("CLAUDE_GRAMMAR_DATA_DIR", "").strip()
+DATA_DIR = (
+    Path(_DATA_DIR_OVERRIDE).expanduser().resolve()
+    if _DATA_DIR_OVERRIDE
+    else Path("~/.claude/hooks/grammar/data").expanduser()
+)
 DATABASE_FILE = DATA_DIR / "corrections.db"
 ENV_FILE = _ENV_FILE
 
@@ -60,6 +68,17 @@ INITIAL_DEFAULTS: dict = {
         "theme": "phosphor",
         "chat_format": "full",
         "dogs_enabled": True,
+    },
+    "filters": {
+        # Categories the corrector should skip (e.g. "capitalization"). Must
+        # match the `category` values the corrector emits. Enforced in code
+        # even when the model tries to correct them anyway.
+        "excluded_categories": [],
+        # Tokens the user wants preserved verbatim — chat shorthand like "ur",
+        # "urs", "4", "u". Case-insensitive; trailing punctuation is ignored
+        # when matching. Any correction whose `original` is a preserved token
+        # is dropped.
+        "preserved_tokens": [],
     },
     "translation": {
         # ISO 639-1 code. English is always the other side. Auto-detection

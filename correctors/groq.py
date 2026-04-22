@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 import requests
 
+from grammar import filters as filters_module
 from grammar.config import DATA_DIR
 from grammar.settings import (
     GROQ_API_KEY_ENV,
@@ -126,10 +127,13 @@ class GroqCorrector(BaseCorrector):
             log.error("Groq API key missing. Set $%s or groq.api_key in settings.", GROQ_API_KEY_ENV)
             return empty
 
+        excluded, preserved = filters_module.load()
+        system_prompt = GROQ_SYSTEM_PROMPT + SAFETY_APPENDIX + filters_module.prompt_snippet(excluded, preserved)
+
         model_chain = [GROQ_MODEL, *GROQ_FALLBACK_MODELS]
         for index, model in enumerate(model_chain):
             is_last = index == len(model_chain) - 1
-            response = _request(model, text, api_key)
+            response = _request(model, text, api_key, system_prompt=system_prompt)
             if response is None:
                 if is_last:
                     return empty
@@ -150,7 +154,7 @@ class GroqCorrector(BaseCorrector):
                 continue
 
             if response.status_code == 400 and GROQ_USE_JSON_SCHEMA:
-                response = _request(model, text, api_key, use_schema=False)
+                response = _request(model, text, api_key, system_prompt=system_prompt, use_schema=False)
                 if response is None:
                     if is_last:
                         return empty
@@ -166,12 +170,13 @@ class GroqCorrector(BaseCorrector):
                 continue
 
             _log_rate_headers(model, response)
-            return _parse_response(response, text, model)
+            result = _parse_response(response, text, model)
+            return filters_module.apply(text, result, excluded, preserved)
 
         return empty
 
 
-def _request(model: str, text: str, api_key: str, use_schema: bool = True):
+def _request(model: str, text: str, api_key: str, system_prompt: str, use_schema: bool = True):
     # Wrap the user text in an explicit boundary tag so the model sees a clear
     # separation between "these are instructions to you" (system) and "this is
     # opaque data to edit" (user). Combined with SAFETY_APPENDIX, this closes
@@ -180,7 +185,7 @@ def _request(model: str, text: str, api_key: str, use_schema: bool = True):
     body: dict = {
         "model": model,
         "messages": [
-            {"role": "system", "content": GROQ_SYSTEM_PROMPT + SAFETY_APPENDIX},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": wrapped},
         ],
         "temperature": GROQ_TEMPERATURE,

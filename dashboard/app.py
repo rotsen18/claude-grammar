@@ -42,7 +42,26 @@ SETTINGS_WRITABLE_KEYS = {
     "ui",
     "update",
     "translation",
+    "filters",
 }
+
+# Known canonical categories that the LLM correctors can emit. Used to seed
+# the exclusion picker so users can pick categories they haven't hit yet.
+KNOWN_CATEGORIES = [
+    "spelling",
+    "capitalization",
+    "punctuation",
+    "tense",
+    "agreement",
+    "article",
+    "word_choice",
+    "word_order",
+    "preposition",
+    "contraction",
+    "clarity",
+    "style",
+    "grammar",
+]
 
 import queue as _queue
 
@@ -334,6 +353,20 @@ def stats() -> Response:
     return jsonify(storage.get_stats())
 
 
+@app.route("/api/corrections/categories")
+def corrections_categories() -> Response:
+    """Known canonical categories unioned with whatever has actually appeared
+    in the DB (so LT-specific labels show up too once they've been seen)."""
+    try:
+        observed = storage.get_stats().get("top_categories") or []
+    except Exception:
+        observed = []
+    seen = {str(row.get("category") or "").strip() for row in observed}
+    seen.discard("")
+    categories = sorted({*KNOWN_CATEGORIES, *seen})
+    return jsonify({"categories": categories})
+
+
 @app.route("/api/hook/pending", methods=["POST"])
 def api_hook_pending() -> Response:
     try:
@@ -406,6 +439,11 @@ def update_settings_endpoint() -> Response:
     if translation_cfg.get("target_language") not in valid_codes:
         translation_cfg["target_language"] = translator.DEFAULT_TARGET
     updated["translation"] = translation_cfg
+
+    filters_cfg = updated.get("filters") or {}
+    filters_cfg["excluded_categories"] = _sanitize_string_list(filters_cfg.get("excluded_categories"))
+    filters_cfg["preserved_tokens"] = _sanitize_string_list(filters_cfg.get("preserved_tokens"))
+    updated["filters"] = filters_cfg
 
     storage.set_settings(updated)
 
@@ -831,6 +869,29 @@ def _mask_secrets(settings: dict) -> dict:
     groq["api_key"] = _mask(key)
     safe["groq"] = groq
     return safe
+
+
+def _sanitize_string_list(value) -> list[str]:
+    """Coerce incoming filters lists into a normalized list of strings.
+    Accepts a JSON array or a single whitespace/comma-separated string so the
+    UI can POST either shape. Empty values are dropped; order is preserved."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        raw_items = re.split(r"[,\s]+", value)
+    elif isinstance(value, (list, tuple)):
+        raw_items = [str(item) for item in value]
+    else:
+        return []
+    seen: set[str] = set()
+    result: list[str] = []
+    for raw in raw_items:
+        item = str(raw).strip()
+        if not item or item.lower() in seen:
+            continue
+        seen.add(item.lower())
+        result.append(item)
+    return result
 
 
 def _mask(key: str) -> str:

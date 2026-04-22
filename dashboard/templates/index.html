@@ -421,17 +421,6 @@
   .translate-input::placeholder { color: var(--text-fade); }
   .translate-input:focus { border-color: var(--add-fg); width: 220px; }
   .translate-input[data-loading="true"] { border-color: var(--cat-spelling, #ffb454); }
-  .translate-lang {
-    color: var(--text-fade);
-    font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-weight: 600;
-    min-width: 38px;
-    text-align: center;
-  }
-  .translate-lang[data-dir="en→uk"] { color: var(--cat-article, #7cd3ff); }
-  .translate-lang[data-dir="uk→en"] { color: var(--cat-tense, #ff4d7d); }
   .translate-panel {
     position: absolute;
     top: calc(100% + 4px);
@@ -1837,6 +1826,25 @@
   .modal-tab-panel { display: none; }
   .modal-tab-panel.active { display: block; }
 
+  /* Filters tab */
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 6px 12px;
+    margin-top: 4px;
+  }
+  .category-grid label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-dim);
+    user-select: none;
+  }
+  .category-grid label:hover { color: var(--text-bright); }
+  .category-grid input[type="checkbox"] { accent-color: var(--add-fg); }
+
   /* Info modal */
   .info-body h3 {
     font-size: 10px;
@@ -2006,7 +2014,6 @@
       placeholder="translate"
       title="type a word, press Enter — auto-detects direction by script"
     />
-    <span class="translate-lang" id="translate-lang" data-dir="">—</span>
     <div class="translate-panel" id="translate-panel" role="dialog" aria-live="polite"></div>
   </div>
   <div class="stats">
@@ -2069,6 +2076,7 @@
       <div class="modal-tabs" role="tablist">
         <button type="button" class="modal-tab active" data-tab="corrector" role="tab" aria-selected="true">corrector</button>
         <button type="button" class="modal-tab" data-tab="appearance" role="tab" aria-selected="false">appearance</button>
+        <button type="button" class="modal-tab" data-tab="filters" role="tab" aria-selected="false">filters</button>
         <button type="button" class="modal-tab" data-tab="general" role="tab" aria-selected="false">general</button>
       </div>
 
@@ -2144,6 +2152,20 @@
           <span class="field-label">translation target language</span>
           <select class="text" id="translation-target"></select>
           <span class="field-hint">English is always one side. Direction is auto-detected by scanning for non-ASCII characters.</span>
+        </div>
+      </div>
+
+      <div class="modal-tab-panel" data-panel="filters" role="tabpanel">
+        <div class="field">
+          <span class="field-label">excluded categories</span>
+          <div class="category-grid" id="excluded-categories"></div>
+          <span class="field-hint">Corrections in checked categories are dropped before they reach the dashboard. Handy for silencing noise like capitalization in chat.</span>
+        </div>
+
+        <div class="field">
+          <span class="field-label">preserved tokens</span>
+          <input class="text" id="preserved-tokens" type="text" spellcheck="false" placeholder="ur, urs, 4, u, r" />
+          <span class="field-hint">Comma- or space-separated. The corrector is told to leave these verbatim, and any correction that still targets one is dropped. Case-insensitive.</span>
         </div>
       </div>
 
@@ -3812,6 +3834,47 @@ function renderChatFormatSegments(options, active) {
   }
 }
 
+async function renderFiltersPanel(filtersCfg) {
+  const host = document.getElementById('excluded-categories');
+  const tokensInput = document.getElementById('preserved-tokens');
+  if (!host || !tokensInput) return;
+
+  const excluded = new Set(
+    (filtersCfg.excluded_categories || []).map((v) => String(v).toLowerCase())
+  );
+
+  let categories = [];
+  try {
+    const response = await fetch('/api/corrections/categories');
+    const data = await response.json();
+    categories = data.categories || [];
+  } catch (_) {
+    // On failure show just whatever the user already excluded, so we don't
+    // silently wipe their selection.
+    categories = [...excluded];
+  }
+
+  host.innerHTML = '';
+  for (const name of categories) {
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = name;
+    if (excluded.has(name.toLowerCase())) checkbox.checked = true;
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(' ' + name));
+    host.appendChild(label);
+  }
+
+  tokensInput.value = (filtersCfg.preserved_tokens || []).join(', ');
+}
+
+function collectCheckedCategories() {
+  const host = document.getElementById('excluded-categories');
+  if (!host) return [];
+  return [...host.querySelectorAll('input[type="checkbox"]:checked')].map((cb) => cb.value);
+}
+
 function renderKeyStatus(env) {
   keyStatusEl.className = 'key-status';
   if (env.groq_key_present) {
@@ -3863,6 +3926,7 @@ async function loadSettings() {
       data.translation_languages || [],
       (currentSettings.translation || {}).target_language || 'uk',
     );
+    await renderFiltersPanel(currentSettings.filters || {});
     // Also update markers in the info modal so they stay in sync.
     const sepMarker = document.getElementById('marker-sep');
     const bypassMarker = document.getElementById('marker-bypass');
@@ -3900,6 +3964,10 @@ async function saveSettings() {
     },
     translation: {
       target_language: document.getElementById('translation-target').value || 'uk',
+    },
+    filters: {
+      excluded_categories: collectCheckedCategories(),
+      preserved_tokens: document.getElementById('preserved-tokens').value || '',
     },
     bypass_marker: bypassInput.value,
     separator: sepInput.value,
@@ -4157,8 +4225,7 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
 (() => {
   const input = document.getElementById('translate-input');
   const panel = document.getElementById('translate-panel');
-  const langEl = document.getElementById('translate-lang');
-  if (!input || !panel || !langEl) return;
+  if (!input || !panel) return;
 
   let targetLang = 'uk';
   let targetName = 'Ukrainian';
@@ -4170,26 +4237,10 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
 
-  const detectDirection = (text) => {
-    if (!text.trim()) return '';
-    for (const ch of text) {
-      if (ch.charCodeAt(0) > 127) return `${targetLang}→en`;
-    }
-    return `en→${targetLang}`;
-  };
-
-  const updateLang = () => {
-    const dir = detectDirection(input.value);
-    langEl.dataset.dir = dir;
-    langEl.textContent = dir || `en ↔ ${targetLang}`;
-  };
-
   const updateTargetLanguage = (code, name) => {
     targetLang = (code || 'uk').toLowerCase();
     targetName = name || targetLang.toUpperCase();
-    input.placeholder = `translate en ↔ ${targetLang}`;
     input.title = `type a word in English or ${targetName}, press Enter to translate`;
-    updateLang();
   };
 
   const showPanel = (html) => {
@@ -4322,15 +4373,12 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
     }
   };
 
-  input.addEventListener('input', updateLang);
-
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       runTranslation();
     } else if (event.key === 'Escape') {
       input.value = '';
-      updateLang();
       hidePanel();
       input.blur();
     }
@@ -4351,7 +4399,6 @@ document.getElementById('paused-pill')?.addEventListener('click', () => setHookE
     if (!item) return;
     const source = item.dataset.source || '';
     input.value = source;
-    updateLang();
     runTranslation();
   });
 
