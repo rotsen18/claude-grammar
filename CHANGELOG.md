@@ -9,6 +9,8 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-04-22
+
 ### Added
 - **Filters tab in settings modal.** Two new knobs for quieting the
   corrector: an **excluded categories** checkbox grid (e.g. skip
