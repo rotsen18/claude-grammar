@@ -974,8 +974,31 @@ def _write_env_key(key: str, value: str) -> None:
         raise
 
 
+def _kick_startup_update_check() -> None:
+    """Force a fresh update check shortly after the dashboard comes up,
+    so the header pill reflects the latest release immediately instead of
+    waiting for the next frontend poll (15 min) or the backend cache
+    window (1 h). Runs in a background thread so it never blocks startup,
+    and swallows everything — an update probe failing at boot must not
+    take the dashboard down with it."""
+    def _run() -> None:
+        try:
+            settings = _load_effective_settings()
+            update_cfg = settings.get("update") or {}
+            github_repo = (update_cfg.get("github_repo") or "").strip()
+            if not github_repo:
+                return
+            interval_hours = int(update_cfg.get("check_interval_hours") or 24)
+            updater.check_for_update(github_repo, interval_hours=interval_hours, force=True)
+        except Exception:
+            log.exception("Startup update check failed")
+
+    threading.Timer(1.0, _run).start()
+
+
 def main() -> None:
     storage.init_db()
+    _kick_startup_update_check()
     app.run(host=DASHBOARD_HOST, port=DASHBOARD_PORT, debug=False, threaded=True)
 
 

@@ -339,6 +339,15 @@ from GitHub, so publishing a release is just: bump version + tag.
 2. Go to **Actions → Release → Run workflow**, pick `patch`/`minor`/`major`,
    click **Run workflow**.
 
+Step 2 must be done in the browser. The `gh` CLI on this dev machine is
+logged in as `taras-radity`, which has read-only access to
+`rotsen18/claude-grammar` (`pull: true`, everything else false) — so
+`gh workflow run Release` → 403 "admin rights required" and
+`gh release edit` → 404. Browser auth uses the `rotsen18` account, which
+owns the repo. If you want to polish the auto-generated release notes
+after the workflow runs, edit them on the **Releases → Edit release**
+page, not via `gh release edit`.
+
 The workflow reads `VERSION`, computes the next version, bumps
 `VERSION` + `pyproject.toml`, promotes `## [Unreleased]` to a dated
 version header, commits, tags, and creates the GitHub Release — all

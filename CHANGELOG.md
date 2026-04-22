@@ -9,6 +9,14 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+### Fixed
+- **Update pill now appears right after a dashboard restart.** Previously
+  the dashboard only noticed a newer release when the frontend happened
+  to poll (every 15 min) or the user force-refreshed — so users who
+  restarted the dashboard kept seeing their old version for up to an hour.
+  Now a force update check fires 1s after startup in a background thread,
+  so the pill shows up immediately if an update is available.
+
 ## [0.4.0] — 2026-04-22
 
 ### Added
