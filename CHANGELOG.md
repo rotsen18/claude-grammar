@@ -9,6 +9,8 @@ follows [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-04-22
+
 ### Fixed
 - **Update pill now appears right after a dashboard restart.** Previously
   the dashboard only noticed a newer release when the frontend happened
